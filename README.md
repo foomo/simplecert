@@ -41,7 +41,7 @@ cfg.CacheDir = "/etc/letsencrypt/live/yourdomain.com"
 cfg.SSLEmail = "you@emailprovider.com"
 certReloader, err := autocert.Init(cfg)
 if err != nil {
-	log.Fatal("autocert init failed: ", err)
+    log.Fatal("autocert init failed: ", err)
 }
 
 // redirect HTTP to HTTPS
@@ -59,8 +59,8 @@ tlsconf.GetCertificate = certReloader.GetCertificateFunc()
 
 // init server
 s := &http.Server{
-	Addr:      ":443",
-	TLSConfig: tlsconf,
+    Addr:      ":443",
+    TLSConfig: tlsconf,
 }
 
 // lets go
@@ -77,33 +77,33 @@ Parameters are explained below.
 // Config allows configuration of autocert
 type Config struct {
 
-	// renew the certificate X hours before it expires
-	// LetsEncrypt Certs are valid for 90 Days
-	RenewBefore int
+    // renew the certificate X hours before it expires
+    // LetsEncrypt Certs are valid for 90 Days
+    RenewBefore int
 
-	// Interval for checking if cert is closer to expiration than RenewBefore
-	CheckInterval time.Duration
+    // Interval for checking if cert is closer to expiration than RenewBefore
+    CheckInterval time.Duration
 
-	// SSLEmail for contact
-	SSLEmail string
+    // SSLEmail for contact
+    SSLEmail string
 
-	// ACME Directory URL. Can be set to https://acme-staging.api.letsencrypt.org/directory for testing
-	DirectoryURL string
+    // ACME Directory URL. Can be set to https://acme-staging.api.letsencrypt.org/directory for testing
+    DirectoryURL string
 
-	// Endpoints for webroot challenge
-	// CAUTION: challenge must be received on port 80 and 443
-	// if you choose different ports here you must redirect the traffic
-	HTTPAddress string
-	TLSAddress  string
+    // Endpoints for webroot challenge
+    // CAUTION: challenge must be received on port 80 and 443
+    // if you choose different ports here you must redirect the traffic
+    HTTPAddress string
+    TLSAddress  string
 
-	// UNIX Permission for the CacheDir and all files inside
-	CacheDirPerm os.FileMode
+    // UNIX Permission for the CacheDir and all files inside
+    CacheDirPerm os.FileMode
 
-	// Domains for which to obtain the certificate
-	Domains []string
+    // Domains for which to obtain the certificate
+    Domains []string
 
-	// Path of the CacheDir
-	CacheDir string
+    // Path of the CacheDir
+    CacheDir string
 }
 ```
 
