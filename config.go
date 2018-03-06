@@ -1,12 +1,12 @@
 //
-//  autocert
+//  simplecert
 //
 //  Created by Philipp Mieden
 //  Contact: dreadl0ck@protonmail.ch
 //  Copyright © 2018 bestbytes. All rights reserved.
 //
 
-package autocert
+package simplecert
 
 import (
 	"errors"
@@ -31,7 +31,7 @@ var Default = &Config{
 	CacheDir:      "",
 }
 
-// Config allows configuration of autocert
+// Config allows configuration of simplecert
 type Config struct {
 
 	// renew the certificate X hours before it expires
@@ -66,13 +66,13 @@ type Config struct {
 // CheckConfig checks if config can be used to obtain a cert
 func CheckConfig(c *Config) error {
 	if len(c.Domains) == 0 {
-		return errors.New("autocert: no domains specified")
+		return errors.New("simplecert: no domains specified")
 	}
 	if c.SSLEmail == "" {
-		return errors.New("autocert: no SSLEmail in config")
+		return errors.New("simplecert: no SSLEmail in config")
 	}
 	if c.DirectoryURL == "" {
-		return errors.New("autocert: no directory url specified")
+		return errors.New("simplecert: no directory url specified")
 	}
 	return nil
 }

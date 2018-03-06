@@ -1,12 +1,12 @@
 //
-//  autocert
+//  simplecert
 //
 //  Created by Philipp Mieden
 //  Contact: dreadl0ck@protonmail.ch
 //  Copyright © 2018 bestbytes. All rights reserved.
 //
 
-package autocert
+package simplecert
 
 import (
 	"crypto"

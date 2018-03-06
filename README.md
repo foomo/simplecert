@@ -1,10 +1,11 @@
-# autocert
+# simplecert
 
-                 _                      _
-      __ _ _   _| |_ ___   ___ ___ _ __| |_
-     / _` | | | | __/ _ \ / __/ _ \ '__| __|
-    | (_| | |_| | || (_) | (_|  __/ |  | |_
-     \__,_|\__,_|\__\___/ \___\___|_|   \__|
+         _                 _                    _
+     ___(_)_ __ ___  _ __ | | ___  ___ ___ _ __| |_
+    / __| | '_ ` _ \| '_ \| |/ _ \/ __/ _ \ '__| __|
+    \__ \ | | | | | | |_) | |  __/ (_|  __/ |  | |_
+    |___/_|_| |_| |_| .__/|_|\___|\___\___|_|   \__|
+                    |_|
 
 > Golang Library for automatic LetsEncrypt SSL Certificates
 
@@ -14,8 +15,8 @@ Lego is vendored with dep, in case of any breaking API changes.
 
 CAUTION: Beta, use with care.
 
-You need to supply the following data to autocert: Domains, Contact Email and a Directory to store the certs in (CacheDir).
-On startup, call the autocert.Init() function and pass your config.
+You need to supply the following data to simplecert: Domains, Contact Email and a Directory to store the certs in (CacheDir).
+On startup, call the simplecert.Init() function and pass your config.
 You will receive a certReloader instance, that has a GetCertificateFunc to allow hot reloading the cert upon renewal.
 See Usage for a detailed example.
 
@@ -24,28 +25,28 @@ For more advanced usage, see the config section for all configuration options.
 ## Install
 
 ```shell
-go get -u -v github.com/foomo/autocert
+go get -u -v github.com/foomo/simplecert
 ```
 
 ## Usage
 
-autocert has a default configuration available: autocert.Default
+simplecert has a default configuration available: simplecert.Default
 
 You will need to update the Domains, CacheDir and SSLEmail and you are ready to go.
 
 ```go
 // do the cert magic
-cfg := autocert.Default
+cfg := simplecert.Default
 cfg.Domains = []string{"yourdomain.com", "www.yourdomain.com"}
 cfg.CacheDir = "/etc/letsencrypt/live/yourdomain.com"
 cfg.SSLEmail = "you@emailprovider.com"
-certReloader, err := autocert.Init(cfg)
+certReloader, err := simplecert.Init(cfg)
 if err != nil {
-    log.Fatal("autocert init failed: ", err)
+    log.Fatal("simplecert init failed: ", err)
 }
 
 // redirect HTTP to HTTPS
-// CAUTION: This has to be done AFTER autocert setup
+// CAUTION: This has to be done AFTER simplecert setup
 // Otherwise Port 80 will be blocked and cert registration fails!
 cLog.Info("starting HTTP Listener on Port 80")
 go http.ListenAndServe(":80", http.HandlerFunc(redirect))
@@ -74,7 +75,7 @@ You can pass a custom config to suit your needs.
 Parameters are explained below.
 
 ```go
-// Config allows configuration of autocert
+// Config allows configuration of simplecert
 type Config struct {
 
     // renew the certificate X hours before it expires
