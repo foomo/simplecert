@@ -30,7 +30,7 @@ type CertReloader struct {
 }
 
 // NewCertReloader returns a new CertReloader instance
-func NewCertReloader(certPath, keyPath string) (*CertReloader, error) {
+func NewCertReloader(certPath, keyPath string, logFile *os.File) (*CertReloader, error) {
 	reloader := &CertReloader{
 		certPath: certPath,
 		keyPath:  keyPath,
@@ -42,28 +42,36 @@ func NewCertReloader(certPath, keyPath string) (*CertReloader, error) {
 	reloader.cert = &cert
 	go func() {
 		sigChan := make(chan os.Signal, 1)
-		signal.Notify(sigChan, syscall.SIGHUP)
-		for range sigChan {
-			log.Printf("Received SIGHUP, reloading TLS certificate and key from %q and %q", certPath, keyPath)
-			if err := reloader.maybeReload(); err != nil {
-				log.Printf("Keeping old TLS certificate because the new one could not be loaded: %v", err)
+		signal.Notify(sigChan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGABRT)
+		for sig := range sigChan {
+			if sig == syscall.SIGHUP {
+				log.Printf("Received SIGHUP, reloading TLS certificate and key from %q and %q", certPath, keyPath)
+				if err := reloader.maybeReload(); err != nil {
+					log.Printf("Keeping old TLS certificate because the new one could not be loaded: %v", err)
 
-				// rollback files from backup dir
-				// restore private key
-				err = os.Rename(c.CacheDir+"/backup-"+backupDate+"/key.pem", c.CacheDir+"/key.pem")
-				if err != nil {
-					log.Fatal("[FATAL] failed to move key into backup dir: ", err)
+					// rollback files from backup dir
+					// restore private key
+					err = os.Rename(c.CacheDir+"/backup-"+backupDate+"/key.pem", c.CacheDir+"/key.pem")
+					if err != nil {
+						log.Fatal("[FATAL] simplecert: failed to move key into backup dir: ", err)
+					}
+
+					// restore certificate
+					err = os.Rename(c.CacheDir+"/backup-"+backupDate+"/key.pem", c.CacheDir+"/cert.pem")
+					if err != nil {
+						log.Fatal("[FATAL] simplecert: failed to move cert into backup dir: ", err)
+					}
+
+					err = os.Remove(c.CacheDir + "/backup-" + backupDate)
+					if err != nil {
+						log.Fatal("[FATAL] simplecert: failed to remove backup dir: ", err)
+					}
 				}
-
-				// restore certificate
-				err = os.Rename(c.CacheDir+"/backup-"+backupDate+"/key.pem", c.CacheDir+"/cert.pem")
+			} else {
+				// cleanup
+				err := logFile.Close()
 				if err != nil {
-					log.Fatal("[FATAL] failed to move cert into backup dir: ", err)
-				}
-
-				err = os.Remove(c.CacheDir + "/backup-" + backupDate)
-				if err != nil {
-					log.Fatal("[FATAL] failed to remove backup dir: ", err)
+					log.Fatal("[FATAL] simplecert: failed to close logfile handle: ", err)
 				}
 			}
 		}

@@ -23,10 +23,10 @@ func createClient(u SSLUser) acme.Client {
 	// Create a new client instance
 	client, err := acme.NewClient(c.DirectoryURL, &u, acme.RSA4096)
 	if err != nil {
-		log.Fatal("[FATAL] failed to create client", err)
+		log.Fatal("[FATAL] simplecert: failed to create client", err)
 	}
 
-	log.Println("[INFO] client creation complete")
+	log.Println("[INFO] simplecert: client creation complete")
 
 	// Set Endpoints
 	client.SetHTTPAddress(c.HTTPAddress)
@@ -38,19 +38,19 @@ func createClient(u SSLUser) acme.Client {
 		// Register Client
 		reg, err := client.Register()
 		if err != nil {
-			log.Fatal("[FATAL] failed to register client: ", err)
+			log.Fatal("[FATAL] simplecert: failed to register client: ", err)
 		}
 		u.Registration = reg
-		log.Println("[INFO] client registration complete: ", client)
+		log.Println("[INFO] simplecert: client registration complete: ", client)
 		saveUserToDisk(u, c.CacheDir)
 
 		// The client has a URL to the current Let's Encrypt Subscriber
 		// Agreement. The user will need to agree to it.
 		err = client.AgreeToTOS()
 		if err != nil {
-			log.Fatal("[FATAL] failed to agreeToTOS: ", err)
+			log.Fatal("[FATAL] simplecert: failed to agreeToTOS: ", err)
 		}
-		log.Println("[INFO] client agreeToTOS complete")
+		log.Println("[INFO] simplecert: client agreeToTOS complete")
 	}
 
 	return *client

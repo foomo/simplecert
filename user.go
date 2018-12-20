@@ -57,7 +57,7 @@ func getUser() SSLUser {
 		// user exists. load
 		err = json.Unmarshal(b, &u)
 		if err != nil {
-			log.Fatal("[FATAL] failed to unmarshal SSLUser: ", err)
+			log.Fatal("[FATAL] simplecert: failed to unmarshal SSLUser: ", err)
 		}
 	} else {
 		// create private key
@@ -81,10 +81,10 @@ func getUser() SSLUser {
 func saveUserToDisk(u SSLUser, cacheDir string) {
 	b, err := json.MarshalIndent(u, "", "  ")
 	if err != nil {
-		log.Fatal("[FATAL] failed to marshal user: ", err)
+		log.Fatal("[FATAL] simplecert: failed to marshal user: ", err)
 	}
 	err = ioutil.WriteFile(c.CacheDir+"/SSLUser.json", b, c.CacheDirPerm)
 	if err != nil {
-		log.Fatal("[FATAL] failed to write user to disk: ", err)
+		log.Fatal("[FATAL] simplecert: failed to write user to disk: ", err)
 	}
 }

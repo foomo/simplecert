@@ -71,7 +71,7 @@ func renewalRoutine(cert *acme.CertificateResource) {
 		// cert later on in the renewal process. The input may be a bundle or a single certificate.
 		certificates, err := parsePEMBundle(cert.Certificate)
 		if err != nil {
-			log.Fatal("[FATAL] failed to parsePEMBundle: ", err)
+			log.Fatal("[FATAL] simplecert: failed to parsePEMBundle: ", err)
 		}
 
 		// check if first cert is CA
@@ -87,7 +87,7 @@ func renewalRoutine(cert *acme.CertificateResource) {
 		// Check against renewBefore
 		if int(timeLeft.Hours()) <= int(c.RenewBefore) {
 
-			log.Println("[INFO] renewing cert...")
+			log.Println("[INFO] simplecert: renewing cert...")
 
 			// get ACME Client
 			client := createClient(getUser())
@@ -95,7 +95,7 @@ func renewalRoutine(cert *acme.CertificateResource) {
 			// start renewal
 			cert, err := client.RenewCertificate(*cert, true, false)
 			if err != nil {
-				log.Fatal("[FATAL] failed to renew cert: ", err)
+				log.Fatal("[FATAL] simplecert: failed to renew cert: ", err)
 			}
 
 			// if we made it here we got a new cert
@@ -104,33 +104,33 @@ func renewalRoutine(cert *acme.CertificateResource) {
 			backupDate = time.Now().Format("2006-January-02")
 			err = os.Mkdir(c.CacheDir+"/backup-"+backupDate, c.CacheDirPerm)
 			if err != nil {
-				log.Fatal("[FATAL] failed to create backup dir: ", err)
+				log.Fatal("[FATAL] simplecert: failed to create backup dir: ", err)
 			}
 
 			// backup private key
 			err = os.Rename(c.CacheDir+"/key.pem", c.CacheDir+"/backup-"+backupDate+"/key.pem")
 			if err != nil {
-				log.Fatal("[FATAL] failed to move key into backup dir: ", err)
+				log.Fatal("[FATAL] simplecert: failed to move key into backup dir: ", err)
 			}
 
 			// backup certificate
 			err = os.Rename(c.CacheDir+"/cert.pem", c.CacheDir+"/backup-"+backupDate+"/key.pem")
 			if err != nil {
-				log.Fatal("[FATAL] failed to move cert into backup dir: ", err)
+				log.Fatal("[FATAL] simplecert: failed to move cert into backup dir: ", err)
 			}
 
 			// Save new cert to disk
 			err = saveCertToDisk(cert, c.CacheDir)
 			if err != nil {
-				log.Fatal("[FATAL] failed to write new cert to disk")
+				log.Fatal("[FATAL] simplecert: failed to write new cert to disk")
 			}
 
-			log.Println("[INFO] wrote new cert to disk! triggering reload via SIGHUP")
+			log.Println("[INFO] simplecert: wrote new cert to disk! triggering reload via SIGHUP")
 
 			// trigger reload by sending our process a SIGHUP
 			err = syscall.Kill(os.Getpid(), syscall.SIGHUP)
 			if err != nil {
-				log.Fatal("[FATAL] failed to trigger reload of renewed certificate: ", err)
+				log.Fatal("[FATAL] simplecert: failed to trigger reload of renewed certificate: ", err)
 			}
 		}
 
@@ -151,20 +151,20 @@ func certCached(cacheDir string) bool {
 
 // ensures the cacheDir exists, fatals on error
 func ensureCacheDirExists(cacheDir string) {
-	log.Println("[INFO] checking if cacheDir " + cacheDir + " exists...")
+	log.Println("[INFO] simplecert: checking if cacheDir " + cacheDir + " exists...")
 
 	// create cacheDir if necessary
 	info, err := os.Stat(cacheDir)
 	if err != nil {
-		log.Println("[INFO] cacheDir does not exist - creating it")
+		log.Println("[INFO] simplecert: cacheDir does not exist - creating it")
 		err = os.MkdirAll(c.CacheDir, c.CacheDirPerm)
 		if err != nil {
-			log.Fatal("[FATAL] could not create cacheDir: ", err)
+			log.Fatal("[FATAL] simplecert: could not create cacheDir: ", err)
 		}
 	} else {
 		// exists. make sure its a directory
 		if !info.IsDir() {
-			log.Fatal("[FATAL] cacheDir: expected a directory but got a file?!")
+			log.Fatal("[FATAL] simplecert: cacheDir: expected a directory but got a file?!")
 		}
 	}
 }
