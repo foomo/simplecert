@@ -63,12 +63,10 @@ func parsePEMBundle(bundle []byte) ([]*x509.Certificate, error) {
 
 // take care of checking the cert in the configured interval
 // and renew if timeLeft is less than or equal to renewBefore
+// when initially started, the certificate is checked against the thresholds and renewed if neccessary
 func renewalRoutine(cert *acme.CertificateResource) {
 
 	for {
-		// sleep for duration of checkInterval
-		time.Sleep(c.CheckInterval)
-
 		// Input certificate is PEM encoded. Decode it here as we may need the decoded
 		// cert later on in the renewal process. The input may be a bundle or a single certificate.
 		certificates, err := parsePEMBundle(cert.Certificate)
@@ -135,6 +133,9 @@ func renewalRoutine(cert *acme.CertificateResource) {
 				log.Fatal("[FATAL] failed to trigger reload of renewed certificate: ", err)
 			}
 		}
+
+		// sleep for duration of checkInterval
+		time.Sleep(c.CheckInterval)
 	}
 }
 
