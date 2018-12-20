@@ -106,6 +106,9 @@ func Init(cfg *Config) (*CertReloader, error) {
 
 	log.Println("[INFO] simplecert: wrote new cert to disk!")
 
+	// renew cert if necessary
+	renew(&cert)
+
 	// kickoff renewal routine
 	go renewalRoutine(&cert)
 
