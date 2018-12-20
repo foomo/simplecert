@@ -67,8 +67,13 @@ func Init(cfg *Config) (*CertReloader, error) {
 			log.Fatal("[FATAL] simplecert: failed to unmarshal certificate resource")
 		}
 
+		cert := getACMECertResource(cr)
+
+		// renew cert if necessary
+		renew(cert)
+
 		// kickoff renewal routine
-		go renewalRoutine(getACMECertResource(cr))
+		go renewalRoutine(cert)
 
 		return NewCertReloader(c.CacheDir+"/cert.pem", c.CacheDir+"/key.pem", logFile)
 	}
@@ -105,9 +110,6 @@ func Init(cfg *Config) (*CertReloader, error) {
 	}
 
 	log.Println("[INFO] simplecert: wrote new cert to disk!")
-
-	// renew cert if necessary
-	renew(&cert)
 
 	// kickoff renewal routine
 	go renewalRoutine(&cert)
