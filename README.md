@@ -113,8 +113,8 @@ type Config struct {
     CacheDir string
 
     // DNSProvider name for DNS challenges (optional)
-	// see: https://godoc.org/github.com/xenolf/lego/providers/dns
-	DNSProvider string
+    // see: https://godoc.org/github.com/xenolf/lego/providers/dns
+    DNSProvider string
 }
 ```
 
