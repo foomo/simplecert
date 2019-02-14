@@ -2,75 +2,16 @@
 
 
 [[projects]]
-  name = "github.com/miekg/dns"
-  packages = ["."]
-  revision = "5364553f1ee9cddc7ac8b62dce148309c386695b"
-  version = "v1.0.4"
-
-[[projects]]
+  digest = "1:cecede5075f76efcd07258c7e9ea2a693bb2182c53f50ab4754c946b1a88cb51"
   name = "github.com/xenolf/lego"
   packages = ["acme"]
-  revision = "67c86d860a797ce2483f50d9174d4ed24984bef2"
-  version = "v0.4.1"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/crypto"
-  packages = [
-    "ed25519",
-    "ed25519/internal/edwards25519",
-    "ocsp"
-  ]
-  revision = "91a49db82a88618983a78a06c1cbd4e00ab749ab"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/net"
-  packages = [
-    "bpf",
-    "idna",
-    "internal/iana",
-    "internal/socket",
-    "ipv4",
-    "ipv6",
-    "publicsuffix"
-  ]
-  revision = "22ae77b79946ea320088417e4d50825671d82d57"
-
-[[projects]]
-  name = "golang.org/x/text"
-  packages = [
-    "collate",
-    "collate/build",
-    "internal/colltab",
-    "internal/gen",
-    "internal/tag",
-    "internal/triegen",
-    "internal/ucd",
-    "language",
-    "secure/bidirule",
-    "transform",
-    "unicode/bidi",
-    "unicode/cldr",
-    "unicode/norm",
-    "unicode/rangetable"
-  ]
-  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
-  version = "v0.3.0"
-
-[[projects]]
-  name = "gopkg.in/square/go-jose.v1"
-  packages = [
-    ".",
-    "cipher",
-    "json"
-  ]
-  revision = "aa2e30fdd1fe9dd3394119af66451ae790d50e0d"
-  version = "v1.1.0"
+  pruneopts = "UT"
+  revision = "52e43eb318b07ace590c2144804292c89aa74802"
+  version = "v2.2.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1a6c90a743fd09009b969ee475ccc529a566ae3b9541962d137c91a060906099"
+  input-imports = ["github.com/xenolf/lego/acme"]
   solver-name = "gps-cdcl"
   solver-version = 1
