@@ -18,7 +18,7 @@ Main goals:
 - ease of use: simplicity and integration with go standard library
 - transparency: products of intermediate steps are preserved, dedicated logfile for simplecert
 
-UPDATE: The vendored lego version has been updated to v2.2.0, and therefore simplecert now uses ACMEv2 challenges.
+UPDATE: The vendored lego version has been updated to v2.2.0 and now supports issuing wildcard certificates by using ACMEv2 challenges.
 
 You need to supply the following data to simplecert: Domains, Contact Email and a Directory to store the certs in (CacheDir).
 On startup, call the simplecert.Init() function and pass your config.

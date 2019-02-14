@@ -23,7 +23,7 @@ var Default = &Config{
 	// Once a week
 	CheckInterval: 7 * 24 * time.Hour,
 	SSLEmail:      "",
-	DirectoryURL:  "https://acme-v01.api.letsencrypt.org/directory",
+	DirectoryURL:  "https://acme-v02.api.letsencrypt.org/directory",
 	HTTPAddress:   ":80",
 	TLSAddress:    ":443",
 	CacheDirPerm:  0700,
@@ -45,7 +45,7 @@ type Config struct {
 	// SSLEmail for contact
 	SSLEmail string
 
-	// ACME Directory URL. Can be set to https://acme-staging.api.letsencrypt.org/directory for testing
+	// ACME Directory URL. Can be set to https://acme-staging-v02.api.letsencrypt.org/directory for testing
 	DirectoryURL string
 
 	// Endpoints for webroot challenge
