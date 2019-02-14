@@ -19,7 +19,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/xenolf/lego/acme"
+	"github.com/xenolf/lego/certificate"
 )
 
 // internal date of the backup to allow restoring in case of an error
@@ -61,7 +61,7 @@ func parsePEMBundle(bundle []byte) ([]*x509.Certificate, error) {
 	return certificates, nil
 }
 
-func renew(cert *acme.CertificateResource) {
+func renew(cert *certificate.Resource) {
 
 	// Input certificate is PEM encoded. Decode it here as we may need the decoded
 	// cert later on in the renewal process. The input may be a bundle or a single certificate.
@@ -89,7 +89,8 @@ func renew(cert *acme.CertificateResource) {
 		client := createClient(getUser())
 
 		// start renewal
-		cert, err := client.RenewCertificate(*cert, true, false)
+		// bundle CA with certificate to avoid "transport: x509: certificate signed by unknown authority" error
+		cert, err := client.Certificate.Renew(*cert, true, false)
 		if err != nil {
 			log.Fatal("[FATAL] simplecert: failed to renew cert: ", err)
 		}
@@ -134,7 +135,7 @@ func renew(cert *acme.CertificateResource) {
 // take care of checking the cert in the configured interval
 // and renew if timeLeft is less than or equal to renewBefore
 // when initially started, the certificate is checked against the thresholds and renewed if neccessary
-func renewalRoutine(cert *acme.CertificateResource) {
+func renewalRoutine(cert *certificate.Resource) {
 
 	for {
 		// sleep for duration of checkInterval
@@ -176,7 +177,7 @@ func ensureCacheDirExists(cacheDir string) {
 
 // Persist the certificate on disk
 // this assumes that cacheDir exists
-func saveCertToDisk(cert acme.CertificateResource, cacheDir string) error {
+func saveCertToDisk(cert *certificate.Resource, cacheDir string) error {
 
 	// JSON encode certificate resource
 	// needs to be a CR otherwise the fields with the keys will be lost
@@ -184,7 +185,6 @@ func saveCertToDisk(cert acme.CertificateResource, cacheDir string) error {
 		Domain:            cert.Domain,
 		CertURL:           cert.CertURL,
 		CertStableURL:     cert.CertStableURL,
-		AccountRef:        cert.AccountRef,
 		PrivateKey:        cert.PrivateKey,
 		Certificate:       cert.Certificate,
 		IssuerCertificate: cert.IssuerCertificate,

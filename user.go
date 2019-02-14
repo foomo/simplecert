@@ -16,7 +16,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/xenolf/lego/acme"
+	"github.com/xenolf/lego/registration"
 )
 
 /*
@@ -26,7 +26,7 @@ import (
 // SSLUser implements the ACME User interface
 type SSLUser struct {
 	Email        string
-	Registration *acme.RegistrationResource
+	Registration *registration.Resource
 	Key          *rsa.PrivateKey
 }
 
@@ -36,7 +36,7 @@ func (u SSLUser) GetEmail() string {
 }
 
 // GetRegistration returns the users registration resource
-func (u SSLUser) GetRegistration() *acme.RegistrationResource {
+func (u SSLUser) GetRegistration() *registration.Resource {
 	return u.Registration
 }
 

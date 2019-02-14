@@ -13,7 +13,12 @@ Obtains certificates automatically, and manages renewal and hot reload for your 
 It uses the awesome [LEGO Library](https://github.com/xenolf/lego) to perform ACME challenges.
 Lego is vendored with dep, in case of any breaking API changes.
 
-CAUTION: Beta, use with care.
+Main goals:
+
+- ease of use: simplicity and integration with go standard library
+- transparency: products of intermediate steps are preserved, dedicated logfile for simplecert
+
+UPDATE: The vendored lego version has been updated to v2.2.0, and therefore simplecert now uses ACMEv2 challenges.
 
 You need to supply the following data to simplecert: Domains, Contact Email and a Directory to store the certs in (CacheDir).
 On startup, call the simplecert.Init() function and pass your config.
@@ -40,6 +45,7 @@ cfg := simplecert.Default
 cfg.Domains = []string{"yourdomain.com", "www.yourdomain.com"}
 cfg.CacheDir = "/etc/letsencrypt/live/yourdomain.com"
 cfg.SSLEmail = "you@emailprovider.com"
+cfg.DNSProvider = "cloudflare"
 certReloader, err := simplecert.Init(cfg)
 if err != nil {
     log.Fatal("simplecert init failed: ", err)
@@ -105,8 +111,16 @@ type Config struct {
 
     // Path of the CacheDir
     CacheDir string
+
+    // DNSProvider name for DNS challenges (optional)
+	// see: https://godoc.org/github.com/xenolf/lego/providers/dns
+	DNSProvider string
 }
 ```
+
+## Debug
+
+Simplecert writes all its logs to the *simplecert.log* file inside the configured cache directory.
 
 ## License
 

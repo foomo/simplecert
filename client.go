@@ -10,47 +10,86 @@ package simplecert
 
 import (
 	"log"
+	"strings"
 
-	"github.com/xenolf/lego/acme"
+	"github.com/xenolf/lego/providers/dns"
+
+	"github.com/xenolf/lego/certcrypto"
+	"github.com/xenolf/lego/challenge/http01"
+	"github.com/xenolf/lego/challenge/tlsalpn01"
+	"github.com/xenolf/lego/lego"
+	"github.com/xenolf/lego/registration"
 )
 
 /*
  *	ACMEClient
  */
 
-func createClient(u SSLUser) acme.Client {
+func createClient(u SSLUser) lego.Client {
+
+	// create lego config
+	config := lego.NewConfig(&u)
+	config.CADirURL = c.DirectoryURL
+	config.Certificate.KeyType = certcrypto.RSA4096
 
 	// Create a new client instance
-	client, err := acme.NewClient(c.DirectoryURL, &u, acme.RSA4096)
+	client, err := lego.NewClient(config)
 	if err != nil {
 		log.Fatal("[FATAL] simplecert: failed to create client", err)
 	}
 
 	log.Println("[INFO] simplecert: client creation complete")
 
+	// -------------------------------------------
+	// HTTP & TLS Challenges
+	// -------------------------------------------
+
+	httpSlice := strings.Split(c.HTTPAddress, ":")
+	if len(httpSlice) != 2 {
+		log.Fatal("[FATAL] invalid HTTP address: ", c.HTTPAddress)
+	}
+	tlsSlice := strings.Split(c.TLSAddress, ":")
+	if len(tlsSlice) != 2 {
+		log.Fatal("[FATAL] invalid TLS address: ", c.TLSAddress)
+	}
+
 	// Set Endpoints
-	client.SetHTTPAddress(c.HTTPAddress)
-	client.SetTLSAddress(c.TLSAddress)
+	err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer(httpSlice[0], httpSlice[1]))
+	if err != nil {
+		log.Fatal("[FATAL] setting http challenge provider failed: ", err)
+	}
+	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer(tlsSlice[0], tlsSlice[1]))
+	if err != nil {
+		log.Fatal("[FATAL] setting tls challenge provider failed: ", err)
+	}
+
+	// -------------------------------------------
+	// DNS Challenge
+	// -------------------------------------------
+
+	if c.DNSProvider != "" {
+		p, err := dns.NewDNSChallengeProviderByName(c.DNSProvider)
+		if err != nil {
+			log.Fatal("[FATAL] invalid dns provider specified in config: ", err)
+		}
+
+		client.Challenge.SetDNS01Provider(p)
+		if err != nil {
+			log.Fatal("[FATAL] setting dns challenge provider failed: ", err)
+		}
+	}
 
 	// register if necessary
 	if u.Registration == nil {
 
-		// Register Client
-		reg, err := client.Register()
+		// Register Client and agree to TOS
+		reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
 		if err != nil {
 			log.Fatal("[FATAL] simplecert: failed to register client: ", err)
 		}
 		u.Registration = reg
 		log.Println("[INFO] simplecert: client registration complete: ", client)
 		saveUserToDisk(u, c.CacheDir)
-
-		// The client has a URL to the current Let's Encrypt Subscriber
-		// Agreement. The user will need to agree to it.
-		err = client.AgreeToTOS()
-		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to agreeToTOS: ", err)
-		}
-		log.Println("[INFO] simplecert: client agreeToTOS complete")
 	}
 
 	return *client

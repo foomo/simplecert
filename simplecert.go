@@ -15,6 +15,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/xenolf/lego/certificate"
 )
 
 // Init obtains a new LetsEncrypt cert for the specified domains if there is none in cacheDir
@@ -88,23 +90,24 @@ func Init(cfg *Config) (*CertReloader, error) {
 	// get ACME Client
 	client := createClient(getUser())
 
+	// bundle CA with certificate to avoid "transport: x509: certificate signed by unknown authority" error
+	request := certificate.ObtainRequest{
+		Domains: c.Domains,
+		Bundle:  true,
+	}
+
 	// Obtain a new certificate
 	// The acme library takes care of completing the challenges to obtain the certificate(s).
 	// The domains must resolve to this machine or you have to use the DNS challenge.
-	cert, failures := client.ObtainCertificate(c.Domains, true, nil, false)
-	if len(failures) > 0 {
-		log.Println("[INFO] simplecert: failed to verify ", len(failures), " domains")
-		// At least one domain failed to verify, but others may have succeeded.
-		// If there were any failures, no certificate will be returned.
-		for domain, err := range failures {
-			log.Printf("[%s] %v", domain, err)
-		}
+	certs, err := client.Certificate.Obtain(request)
+	if err != nil {
+		log.Fatal("[FATAL] simplecert: failed to obtain cert: ", err)
 	}
 
-	log.Println("[INFO] simplecert: client obtained cert for domain: ", cert.Domain)
+	log.Println("[INFO] simplecert: client obtained cert for domain: ", certs.Domain)
 
 	// Save cert to disk
-	err = saveCertToDisk(cert, c.CacheDir)
+	err = saveCertToDisk(certs, c.CacheDir)
 	if err != nil {
 		log.Fatal("[FATAL] simplecert: failed to write cert to disk")
 	}
@@ -112,7 +115,7 @@ func Init(cfg *Config) (*CertReloader, error) {
 	log.Println("[INFO] simplecert: wrote new cert to disk!")
 
 	// kickoff renewal routine
-	go renewalRoutine(&cert)
+	go renewalRoutine(certs)
 
 	return NewCertReloader(c.CacheDir+"/cert.pem", c.CacheDir+"/key.pem", logFile)
 }

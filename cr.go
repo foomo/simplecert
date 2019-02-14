@@ -8,7 +8,9 @@
 
 package simplecert
 
-import "github.com/xenolf/lego/acme"
+import (
+	"github.com/xenolf/lego/certificate"
+)
 
 // CR represents an ACME Certificate Resource
 // It can be persisted on the FileSystem with all fields
@@ -17,7 +19,6 @@ type CR struct {
 	Domain            string `json:"domain"`
 	CertURL           string `json:"certUrl"`
 	CertStableURL     string `json:"certStableUrl"`
-	AccountRef        string `json:"accountRef,omitempty"`
 	PrivateKey        []byte `json:"privateKey"`
 	Certificate       []byte `json:"certificate"`
 	IssuerCertificate []byte `json:"issuerCertificate"`
@@ -25,12 +26,11 @@ type CR struct {
 }
 
 // get an ACME certificate resource from CR
-func getACMECertResource(cr CR) *acme.CertificateResource {
-	var cert = new(acme.CertificateResource)
+func getACMECertResource(cr CR) *certificate.Resource {
+	var cert = new(certificate.Resource)
 	cert.Domain = cr.Domain
 	cert.CertURL = cr.CertURL
 	cert.CertStableURL = cr.CertStableURL
-	cert.AccountRef = cr.AccountRef
 	cert.PrivateKey = cr.PrivateKey
 	cert.Certificate = cr.Certificate
 	cert.IssuerCertificate = cr.IssuerCertificate

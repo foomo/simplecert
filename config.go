@@ -29,6 +29,7 @@ var Default = &Config{
 	CacheDirPerm:  0700,
 	Domains:       []string{},
 	CacheDir:      "",
+	DNSProvider:   "",
 }
 
 // Config allows configuration of simplecert
@@ -61,6 +62,10 @@ type Config struct {
 
 	// Path of the CacheDir
 	CacheDir string
+
+	// DNSProvider name for DNS challenges (optional)
+	// see: https://godoc.org/github.com/xenolf/lego/providers/dns
+	DNSProvider string
 }
 
 // CheckConfig checks if config can be used to obtain a cert
