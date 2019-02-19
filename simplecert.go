@@ -19,6 +19,11 @@ import (
 	"github.com/xenolf/lego/certificate"
 )
 
+const (
+	logFileName          = "simplecert.log"
+	certResourceFileName = "CertResource.json"
+)
+
 // Init obtains a new LetsEncrypt cert for the specified domains if there is none in cacheDir
 // or loads an existing one. Certs will be auto renewed in the configured interval.
 // 1. Check if we have a cached certificate, if yes kickoff renewal routine and return
@@ -40,13 +45,18 @@ func Init(cfg *Config) (*CertReloader, error) {
 	c = cfg
 
 	// open logfile handle
-	logFile, err := os.OpenFile(filepath.Join(c.CacheDir, "simplecert.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
+	logFile, err := os.OpenFile(filepath.Join(c.CacheDir, logFileName), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
-		log.Fatal("[FATAL] simplecert: failed to create logfile", err)
+		log.Fatal("[FATAL] simplecert: failed to create logfile: ", err)
 	}
 
 	// configure log pkg to log to stdout and into the logfile
 	log.SetOutput(io.MultiWriter(os.Stdout, logFile))
+
+	var (
+		certFilePath = filepath.Join(c.CacheDir, "cert.pem")
+		keyFilePath  = filepath.Join(c.CacheDir, "key.pem")
+	)
 
 	// do we have a certificate in cacheDir?
 	if certCached(c.CacheDir) {
@@ -57,7 +67,7 @@ func Init(cfg *Config) (*CertReloader, error) {
 		log.Println("[INFO] simplecert: found cert in cacheDir")
 
 		// read cert resource from disk
-		b, err := ioutil.ReadFile(c.CacheDir + "/CertResource.json")
+		b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
 		if err != nil {
 			log.Fatal("[FATAL] simplecert: failed to read CertResource.json from disk: ", err)
 		}
@@ -66,7 +76,7 @@ func Init(cfg *Config) (*CertReloader, error) {
 		var cr CR
 		err = json.Unmarshal(b, &cr)
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to unmarshal certificate resource")
+			log.Fatal("[FATAL] simplecert: failed to unmarshal certificate resource: ", err)
 		}
 
 		cert := getACMECertResource(cr)
@@ -77,7 +87,7 @@ func Init(cfg *Config) (*CertReloader, error) {
 		// kickoff renewal routine
 		go renewalRoutine(cert)
 
-		return NewCertReloader(c.CacheDir+"/cert.pem", c.CacheDir+"/key.pem", logFile)
+		return NewCertReloader(certFilePath, keyFilePath, logFile)
 	}
 
 	/*
@@ -117,5 +127,5 @@ func Init(cfg *Config) (*CertReloader, error) {
 	// kickoff renewal routine
 	go renewalRoutine(certs)
 
-	return NewCertReloader(c.CacheDir+"/cert.pem", c.CacheDir+"/key.pem", logFile)
+	return NewCertReloader(certFilePath, keyFilePath, logFile)
 }
