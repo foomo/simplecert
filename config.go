@@ -30,6 +30,7 @@ var Default = &Config{
 	Domains:       []string{},
 	CacheDir:      "",
 	DNSProvider:   "",
+	Local:         false,
 }
 
 // Config allows configuration of simplecert
@@ -66,6 +67,9 @@ type Config struct {
 	// DNSProvider name for DNS challenges (optional)
 	// see: https://godoc.org/github.com/xenolf/lego/providers/dns
 	DNSProvider string
+
+	// Local runmode
+	Local bool
 }
 
 // CheckConfig checks if config can be used to obtain a cert

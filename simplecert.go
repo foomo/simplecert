@@ -44,6 +44,9 @@ func Init(cfg *Config) (*CertReloader, error) {
 	// update global config
 	c = cfg
 
+	// make sure the cacheDir exists
+	ensureCacheDirExists(c.CacheDir)
+
 	// open logfile handle
 	logFile, err := os.OpenFile(filepath.Join(c.CacheDir, logFileName), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
@@ -52,6 +55,43 @@ func Init(cfg *Config) (*CertReloader, error) {
 
 	// configure log pkg to log to stdout and into the logfile
 	log.SetOutput(io.MultiWriter(os.Stdout, logFile))
+
+	if c.Local {
+
+		// update the cachedir path
+		// certs used in local mode are stored in the "local" subfolder
+		// to avoid overwriting a production certificate
+		c.CacheDir = filepath.Join(c.CacheDir, "local")
+
+		// make sure the cacheDir/local folder exists
+		ensureCacheDirExists(c.CacheDir)
+
+		var (
+			certFilePath = filepath.Join(c.CacheDir, "cert.pem")
+			keyFilePath  = filepath.Join(c.CacheDir, "key.pem")
+		)
+
+		// check if a local cert is already cached
+		if certCached(c.CacheDir) {
+
+			// cert cached! Did the domains change?
+			// If the domains have been modified we need to generate a new certificate
+			if domainsChanged() {
+				log.Println("[INFO] cert cached but domains have changed. generating a new one...")
+				createLocalCert(certFilePath, keyFilePath)
+			}
+		} else {
+
+			// nothing there yet. create a new one
+			createLocalCert(certFilePath, keyFilePath)
+		}
+
+		// create entries in /etc/hosts if necessary
+		updateHosts()
+
+		// return a cert reloader for the local cert
+		return NewCertReloader(certFilePath, keyFilePath, logFile)
+	}
 
 	var (
 		certFilePath = filepath.Join(c.CacheDir, "cert.pem")
@@ -93,9 +133,6 @@ func Init(cfg *Config) (*CertReloader, error) {
 	/*
 	 *	No Cert Found. Register a new one
 	 */
-
-	// make sure the cacheDir exists
-	ensureCacheDirExists(c.CacheDir)
 
 	// get ACME Client
 	client := createClient(getUser())

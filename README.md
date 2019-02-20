@@ -54,7 +54,7 @@ if err != nil {
 // redirect HTTP to HTTPS
 // CAUTION: This has to be done AFTER simplecert setup
 // Otherwise Port 80 will be blocked and cert registration fails!
-cLog.Info("starting HTTP Listener on Port 80")
+log.Println("starting HTTP Listener on Port 80")
 go http.ListenAndServe(":80", http.HandlerFunc(redirect))
 
 // init strict tlsConfig with certReloader
