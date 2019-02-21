@@ -15,6 +15,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/lextoumbourou/goodhosts"
 )
@@ -57,13 +58,21 @@ func createLocalCert(certFilePath, keyFilePath string) {
 	var (
 		newCertFile string
 		newKeyFile  string
+
+		firstDomain = c.Domains[0]
 	)
+
+	if strings.HasPrefix(firstDomain, "*") {
+		firstDomain = strings.TrimPrefix(firstDomain, "*")
+		firstDomain = "_wildcard" + firstDomain
+	}
+
 	if len(c.Domains) > 1 {
-		newCertFile = c.Domains[0] + "+" + strconv.Itoa(len(c.Domains)-1) + ".pem"
-		newKeyFile = c.Domains[0] + "+" + strconv.Itoa(len(c.Domains)-1) + "-key.pem"
+		newCertFile = firstDomain + "+" + strconv.Itoa(len(c.Domains)-1) + ".pem"
+		newKeyFile = firstDomain + "+" + strconv.Itoa(len(c.Domains)-1) + "-key.pem"
 	} else {
-		newCertFile = c.Domains[0] + ".pem"
-		newKeyFile = c.Domains[0] + "-key.pem"
+		newCertFile = firstDomain + ".pem"
+		newKeyFile = firstDomain + "-key.pem"
 	}
 
 	// rename certificate file
