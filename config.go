@@ -31,6 +31,7 @@ var Default = &Config{
 	CacheDir:      "",
 	DNSProvider:   "",
 	Local:         false,
+	UpdateHosts:   true,
 }
 
 // Config allows configuration of simplecert
@@ -70,6 +71,9 @@ type Config struct {
 
 	// Local runmode
 	Local bool
+
+	// UpdateHosts adds the domains to /etc/hosts if running in local mode
+	UpdateHosts bool
 
 	// Handler funcs for graceful service shutdown and restoring
 	WillRenewCertificate func()

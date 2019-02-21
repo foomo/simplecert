@@ -89,7 +89,9 @@ func Init(cfg *Config) (*CertReloader, error) {
 		}
 
 		// create entries in /etc/hosts if necessary
-		updateHosts()
+		if c.UpdateHosts {
+			updateHosts()
+		}
 
 		// return a cert reloader for the local cert
 		return NewCertReloader(certFilePath, keyFilePath, logFile)

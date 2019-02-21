@@ -46,21 +46,21 @@ func createClient(u SSLUser) lego.Client {
 
 	httpSlice := strings.Split(c.HTTPAddress, ":")
 	if len(httpSlice) != 2 {
-		log.Fatal("[FATAL] invalid HTTP address: ", c.HTTPAddress)
+		log.Fatal("[FATAL] simplecert: invalid HTTP address: ", c.HTTPAddress)
 	}
 	tlsSlice := strings.Split(c.TLSAddress, ":")
 	if len(tlsSlice) != 2 {
-		log.Fatal("[FATAL] invalid TLS address: ", c.TLSAddress)
+		log.Fatal("[FATAL] simplecert: invalid TLS address: ", c.TLSAddress)
 	}
 
 	// Set Endpoints
 	err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer(httpSlice[0], httpSlice[1]))
 	if err != nil {
-		log.Fatal("[FATAL] setting http challenge provider failed: ", err)
+		log.Fatal("[FATAL] simplecert: setting http challenge provider failed: ", err)
 	}
 	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer(tlsSlice[0], tlsSlice[1]))
 	if err != nil {
-		log.Fatal("[FATAL] setting tls challenge provider failed: ", err)
+		log.Fatal("[FATAL] simplecert: setting tls challenge provider failed: ", err)
 	}
 
 	// -------------------------------------------
@@ -70,12 +70,12 @@ func createClient(u SSLUser) lego.Client {
 	if c.DNSProvider != "" {
 		p, err := dns.NewDNSChallengeProviderByName(c.DNSProvider)
 		if err != nil {
-			log.Fatal("[FATAL] invalid dns provider specified in config: ", err)
+			log.Fatal("[FATAL] simplecert: invalid dns provider specified in config: ", err)
 		}
 
 		client.Challenge.SetDNS01Provider(p)
 		if err != nil {
-			log.Fatal("[FATAL] setting dns challenge provider failed: ", err)
+			log.Fatal("[FATAL] simplecert: setting dns challenge provider failed: ", err)
 		}
 	}
 

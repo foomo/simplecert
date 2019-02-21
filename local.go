@@ -22,19 +22,23 @@ import (
 // updateHosts is used in local mode
 // to add all host entries for the domains
 func updateHosts() {
+
+	// get hostfile handle
 	hosts, err := goodhosts.NewHosts()
 	if err != nil {
-		log.Fatal("[FATAL] could not open hostsfile: ", err)
+		log.Fatal("[FATAL] simplecert: could not open hostsfile: ", err)
 	}
 
+	// check if all domains from config are present
 	for _, d := range c.Domains {
 		if !hosts.Has(localhost, d) {
 			hosts.Add(localhost, d)
 		}
 	}
 
+	// write changes to disk
 	if err := hosts.Flush(); err != nil {
-		log.Fatal("[FATAL] could not update /etc/hosts: ", err)
+		log.Fatal("[FATAL] simplecert: could not update /etc/hosts: ", err)
 	}
 }
 
@@ -66,14 +70,14 @@ func createLocalCert(certFilePath, keyFilePath string) {
 	log.Println("[INFO] renaming", newCertFile, "to", certFilePath)
 	err := os.Rename(newCertFile, certFilePath)
 	if err != nil {
-		log.Fatal("[FATAL] failed to rename cert file: ", err)
+		log.Fatal("[FATAL] simplecert: failed to rename cert file: ", err)
 	}
 
 	// rename key file
 	log.Println("[INFO] renaming", newKeyFile, "to", keyFilePath)
 	err = os.Rename(newKeyFile, keyFilePath)
 	if err != nil {
-		log.Fatal("[FATAL] failed to rename key file: ", err)
+		log.Fatal("[FATAL] simplecert: failed to rename key file: ", err)
 	}
 }
 

@@ -248,6 +248,6 @@ func runCommand(cmd string, args ...string) {
 	out, err := exec.Command(cmd, args...).CombinedOutput()
 	if err != nil {
 		log.Println("[ERROR] failed to run command: ", cmd+strings.Join(args, " "))
-		log.Fatal("[FATAL] error: ", err, ", output: ", string(out))
+		log.Fatal("[FATAL] simplecert: error: ", err, ", output: ", string(out))
 	}
 }
