@@ -24,6 +24,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/foomo/tlsconfig"
 	"github.com/xenolf/lego/certificate"
 )
 
@@ -36,6 +37,92 @@ const localhost = "127.0.0.1"
 /*
  *	Utils
  */
+
+// ListenAndServeTLSLocal is a util to use simplecert for local development
+func ListenAndServeTLSLocal(addr string, handler http.Handler, domains ...string) error {
+
+	cfg := Default
+	cfg.Domains = domains
+	cfg.CacheDir = "simplecert"
+	cfg.Local = true
+	certReloader, err := Init(cfg)
+	if err != nil {
+		log.Fatal("simplecert init failed: ", err)
+	}
+
+	// redirect HTTP to HTTPS
+	log.Println("starting HTTP Listener on Port 80")
+	go http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+
+	// init strict tlsConfig with certReloader
+	tlsconf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
+
+	// now set GetCertificate to the reloaders GetCertificateFunc to enable hot reload
+	tlsconf.GetCertificate = certReloader.GetCertificateFunc()
+
+	// init server
+	s := &http.Server{
+		Addr:      addr,
+		TLSConfig: tlsconf,
+		Handler:   handler,
+	}
+
+	log.Println("serving: https://" + cfg.Domains[0])
+
+	// lets go
+	return s.ListenAndServeTLS("", "")
+}
+
+// ListenAndServeTLS is a util to use simplecert in production
+func ListenAndServeTLS(addr string, handler http.Handler, mail string, domains ...string) error {
+
+	cfg := Default
+	cfg.Domains = domains
+	cfg.CacheDir = "simplecert"
+	cfg.SSLEmail = mail
+	certReloader, err := Init(cfg)
+	if err != nil {
+		log.Fatal("simplecert init failed: ", err)
+	}
+
+	// redirect HTTP to HTTPS
+	log.Println("starting HTTP Listener on Port 80")
+	go http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+
+	// init strict tlsConfig with certReloader
+	tlsconf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
+
+	// now set GetCertificate to the reloaders GetCertificateFunc to enable hot reload
+	tlsconf.GetCertificate = certReloader.GetCertificateFunc()
+
+	// init server
+	s := &http.Server{
+		Addr:      addr,
+		TLSConfig: tlsconf,
+		Handler:   handler,
+	}
+
+	log.Println("serving: https://" + cfg.Domains[0])
+
+	// lets go
+	return s.ListenAndServeTLS("", "")
+}
+
+// Redirect a request to HTTPS and strips the www. subdomain
+func Redirect(w http.ResponseWriter, req *http.Request) {
+
+	target := "https://" + strings.TrimPrefix(req.Host, "www.") + req.URL.Path
+	if len(req.URL.RawQuery) > 0 {
+		target += "?" + req.URL.RawQuery
+	}
+
+	fmt.Println("redirecting client to https: ", target, " ("+req.Host+")", "UserAgent:", req.UserAgent())
+	http.Redirect(w, req, target, http.StatusTemporaryRedirect)
+}
+
+////////////////////
+// Private
+///////////////////
 
 // parsePEMBundle parses a certificate bundle from top to bottom and returns
 // a slice of x509 certificates. This function will error if no certificates are found.
@@ -227,19 +314,6 @@ func saveCertToDisk(cert *certificate.Resource, cacheDir string) error {
 	}
 
 	return nil
-}
-
-// Redirect a request to HTTPS and strip www. subdomain
-func Redirect(w http.ResponseWriter, req *http.Request) {
-
-	// remove/add not default ports from req.Host
-	target := "https://" + strings.TrimPrefix(req.Host, "www.") + req.URL.Path
-	if len(req.URL.RawQuery) > 0 {
-		target += "?" + req.URL.RawQuery
-	}
-
-	fmt.Println("redirect: ", target, " ("+req.Host+")", "UserAgent:", req.UserAgent())
-	http.Redirect(w, req, target, http.StatusTemporaryRedirect)
 }
 
 // runCommand executes the named command with the supplied arguments

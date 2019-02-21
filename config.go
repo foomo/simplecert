@@ -85,8 +85,10 @@ func CheckConfig(c *Config) error {
 	if len(c.Domains) == 0 {
 		return errors.New("simplecert: no domains specified")
 	}
-	if c.SSLEmail == "" {
-		return errors.New("simplecert: no SSLEmail in config")
+	if !c.Local {
+		if c.SSLEmail == "" {
+			return errors.New("simplecert: no SSLEmail in config")
+		}
 	}
 	if c.DirectoryURL == "" {
 		return errors.New("simplecert: no directory url specified")
