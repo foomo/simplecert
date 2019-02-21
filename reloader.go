@@ -31,15 +31,21 @@ type CertReloader struct {
 
 // NewCertReloader returns a new CertReloader instance
 func NewCertReloader(certPath, keyPath string, logFile *os.File) (*CertReloader, error) {
+
+	// init reloader
 	reloader := &CertReloader{
 		certPath: certPath,
 		keyPath:  keyPath,
 	}
+
+	// Load keypair
 	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
 		return nil, err
 	}
 	reloader.cert = &cert
+
+	// kickoff routine for handling singals
 	go func() {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGABRT)
@@ -78,6 +84,7 @@ func NewCertReloader(certPath, keyPath string, logFile *os.File) (*CertReloader,
 			}
 		}
 	}()
+
 	return reloader, nil
 }
 

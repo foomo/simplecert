@@ -76,7 +76,7 @@ func Init(cfg *Config) (*CertReloader, error) {
 
 			// cert cached! Did the domains change?
 			// If the domains have been modified we need to generate a new certificate
-			if domainsChanged() {
+			if domainsChanged(certFilePath, keyFilePath) {
 				log.Println("[INFO] cert cached but domains have changed. generating a new one...")
 				createLocalCert(certFilePath, keyFilePath)
 			}
@@ -146,15 +146,15 @@ func Init(cfg *Config) (*CertReloader, error) {
 	// Obtain a new certificate
 	// The acme library takes care of completing the challenges to obtain the certificate(s).
 	// The domains must resolve to this machine or you have to use the DNS challenge.
-	certs, err := client.Certificate.Obtain(request)
+	cert, err := client.Certificate.Obtain(request)
 	if err != nil {
 		log.Fatal("[FATAL] simplecert: failed to obtain cert: ", err)
 	}
 
-	log.Println("[INFO] simplecert: client obtained cert for domain: ", certs.Domain)
+	log.Println("[INFO] simplecert: client obtained cert for domain: ", cert.Domain)
 
 	// Save cert to disk
-	err = saveCertToDisk(certs, c.CacheDir)
+	err = saveCertToDisk(cert, c.CacheDir)
 	if err != nil {
 		log.Fatal("[FATAL] simplecert: failed to write cert to disk")
 	}
@@ -162,7 +162,7 @@ func Init(cfg *Config) (*CertReloader, error) {
 	log.Println("[INFO] simplecert: wrote new cert to disk!")
 
 	// kickoff renewal routine
-	go renewalRoutine(certs)
+	go renewalRoutine(cert)
 
 	return NewCertReloader(certFilePath, keyFilePath, logFile)
 }

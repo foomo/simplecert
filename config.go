@@ -70,6 +70,10 @@ type Config struct {
 
 	// Local runmode
 	Local bool
+
+	// Handler funcs for graceful service shutdown and restoring
+	WillRenewCertificate func()
+	DidRenewCertificate  func()
 }
 
 // CheckConfig checks if config can be used to obtain a cert

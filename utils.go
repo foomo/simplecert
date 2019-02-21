@@ -19,14 +19,10 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
-	"github.com/go-yaml/yaml"
-	"github.com/lextoumbourou/goodhosts"
 	"github.com/xenolf/lego/certificate"
 )
 
@@ -145,13 +141,20 @@ func renew(cert *certificate.Resource) {
 // take care of checking the cert in the configured interval
 // and renew if timeLeft is less than or equal to renewBefore
 // when initially started, the certificate is checked against the thresholds and renewed if neccessary
-func renewalRoutine(cert *certificate.Resource) {
+func renewalRoutine(cr *certificate.Resource) {
 
 	for {
 		// sleep for duration of checkInterval
 		time.Sleep(c.CheckInterval)
 
-		renew(cert)
+		// allow graceful shutdown of running services if required
+		c.WillRenewCertificate()
+
+		// renew the certificate
+		renew(cr)
+
+		// allow service restart if required
+		c.DidRenewCertificate()
 	}
 }
 
@@ -236,117 +239,6 @@ func Redirect(w http.ResponseWriter, req *http.Request) {
 
 	fmt.Println("redirect: ", target, " ("+req.Host+")", "UserAgent:", req.UserAgent())
 	http.Redirect(w, req, target, http.StatusTemporaryRedirect)
-}
-
-// updateHosts is used in local mode
-// to add all host entries for the domains
-func updateHosts() {
-	hosts, err := goodhosts.NewHosts()
-	if err != nil {
-		log.Fatal("[ERROR] could not open hostsfile: ", err)
-	}
-
-	for _, d := range c.Domains {
-		if !hosts.Has(localhost, d) {
-			hosts.Add(localhost, d)
-		}
-	}
-
-	if err := hosts.Flush(); err != nil {
-		log.Fatal("[ERROR] could not update /etc/hosts: ", err)
-	}
-}
-
-// createLocalCert first creates a local root CA for mkcert
-// and then generates a trusted certificate for the domains specified in the configuration
-func createLocalCert(certFilePath, keyFilePath string) {
-
-	log.Println("[INFO] no cached cert found. Creating a new one for local development...")
-
-	// run mkcert to create root CA
-	runCommand("mkcert", "-install")
-
-	// run mkcert to generate the certificate
-	runCommand("mkcert", c.Domains...)
-
-	var (
-		newCertFile string
-		newKeyFile  string
-	)
-	if len(c.Domains) > 1 {
-		newCertFile = c.Domains[0] + "+" + strconv.Itoa(len(c.Domains)-1) + ".pem"
-		newKeyFile = c.Domains[0] + "+" + strconv.Itoa(len(c.Domains)-1) + "-key.pem"
-	} else {
-		newCertFile = c.Domains[0] + ".pem"
-		newKeyFile = c.Domains[0] + "-key.pem"
-	}
-
-	// rename certificate file
-	log.Println("[INFO] renaming", newCertFile, "to", certFilePath)
-	err := os.Rename(newCertFile, certFilePath)
-	if err != nil {
-		log.Fatal("[ERROR] failed to rename cert file: ", err)
-	}
-
-	// rename key file
-	log.Println("[INFO] renaming", newKeyFile, "to", keyFilePath)
-	err = os.Rename(newKeyFile, keyFilePath)
-	if err != nil {
-		log.Fatal("[ERROR] failed to rename key file: ", err)
-	}
-
-	// write domains to CacheDir/domains.yml
-	b, err := yaml.Marshal(c.Domains)
-	if err != nil {
-		log.Fatal("[ERROR] failed to marshal domain slice: ", err)
-	}
-
-	// create file to persist the domains used for the cert
-	f, err := os.Create(filepath.Join(c.CacheDir, "domains.yml"))
-	if err != nil {
-		log.Fatal("[ERROR] failed to create domains.yml: ", err)
-	}
-	defer f.Close()
-
-	// write to disk
-	_, err = f.Write(b)
-	if err != nil {
-		log.Fatal("[ERROR] failed to write domains.yml: ", err)
-	}
-}
-
-// domainsChanged check the stored domains when running in local mode
-// if they dont match the domains from the configuration
-// this function returns true
-func domainsChanged() bool {
-
-	// read domains.yml from local cachedir
-	b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, "domains.yml"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// unmarshal string slice
-	var domains []string
-	err = yaml.Unmarshal(b, &domains)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// if the number of entries is not equal, bail out.
-	if len(domains) != len(c.Domains) {
-		return true
-	}
-
-	// compare each entry
-	for i, d := range domains {
-		if d != c.Domains[i] {
-			return true
-		}
-	}
-
-	// identical
-	return false
 }
 
 // runCommand executes the named command with the supplied arguments

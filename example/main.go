@@ -19,7 +19,7 @@ func main() {
 
 	// do the cert magic
 	cfg := simplecert.Default
-	cfg.Domains = []string{"yourdomain.com", "www.yourdomain.com"}
+	cfg.Domains = []string{"yourdomainzzz.com", "www.yourdomain.com"}
 	cfg.CacheDir = "letsencrypt"
 	cfg.SSLEmail = "you@emailprovider.com"
 	cfg.Local = true
