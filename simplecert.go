@@ -22,6 +22,8 @@ import (
 const (
 	logFileName          = "simplecert.log"
 	certResourceFileName = "CertResource.json"
+	certFileName         = "cert.pem"
+	keyFileName          = "key.pem"
 )
 
 // Init obtains a new LetsEncrypt cert for the specified domains if there is none in cacheDir
@@ -67,8 +69,8 @@ func Init(cfg *Config) (*CertReloader, error) {
 		ensureCacheDirExists(c.CacheDir)
 
 		var (
-			certFilePath = filepath.Join(c.CacheDir, "cert.pem")
-			keyFilePath  = filepath.Join(c.CacheDir, "key.pem")
+			certFilePath = filepath.Join(c.CacheDir, certFileName)
+			keyFilePath  = filepath.Join(c.CacheDir, keyFileName)
 		)
 
 		// check if a local cert is already cached
@@ -94,8 +96,8 @@ func Init(cfg *Config) (*CertReloader, error) {
 	}
 
 	var (
-		certFilePath = filepath.Join(c.CacheDir, "cert.pem")
-		keyFilePath  = filepath.Join(c.CacheDir, "key.pem")
+		certFilePath = filepath.Join(c.CacheDir, certFileName)
+		keyFilePath  = filepath.Join(c.CacheDir, keyFileName)
 	)
 
 	// do we have a certificate in cacheDir?

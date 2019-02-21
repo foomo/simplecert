@@ -15,9 +15,12 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 
 	"github.com/xenolf/lego/registration"
 )
+
+const sslUserFileName = "SSLUser.json"
 
 /*
  *	SSLUser
@@ -52,7 +55,7 @@ func getUser() SSLUser {
 	var u SSLUser
 
 	// do we have a user?
-	b, err := ioutil.ReadFile(c.CacheDir + "/SSLUser.json")
+	b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, sslUserFileName))
 	if err == nil {
 		// user exists. load
 		err = json.Unmarshal(b, &u)
@@ -83,7 +86,7 @@ func saveUserToDisk(u SSLUser, cacheDir string) {
 	if err != nil {
 		log.Fatal("[FATAL] simplecert: failed to marshal user: ", err)
 	}
-	err = ioutil.WriteFile(c.CacheDir+"/SSLUser.json", b, c.CacheDirPerm)
+	err = ioutil.WriteFile(filepath.Join(c.CacheDir, sslUserFileName), b, c.CacheDirPerm)
 	if err != nil {
 		log.Fatal("[FATAL] simplecert: failed to write user to disk: ", err)
 	}

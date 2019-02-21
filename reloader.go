@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sync"
 	"syscall"
 )
@@ -53,22 +54,27 @@ func NewCertReloader(certPath, keyPath string, logFile *os.File) (*CertReloader,
 			if sig == syscall.SIGHUP {
 				log.Printf("Received SIGHUP, reloading TLS certificate and key from %q and %q", certPath, keyPath)
 				if err := reloader.maybeReload(); err != nil {
-					log.Printf("Keeping old TLS certificate because the new one could not be loaded: %v", err)
 
+					// there was an error reloading the certificate
 					// rollback files from backup dir
+					log.Printf("[INFO] simplecert: Keeping old TLS certificate because the new one could not be loaded: %v", err)
+
 					// restore private key
-					err = os.Rename(c.CacheDir+"/backup-"+backupDate+"/key.pem", c.CacheDir+"/key.pem")
+					backupPrivKey := filepath.Join(c.CacheDir, "backup-"+backupDate, keyFileName)
+					err = os.Rename(backupPrivKey, filepath.Join(c.CacheDir, keyFileName))
 					if err != nil {
 						log.Fatal("[FATAL] simplecert: failed to move key into backup dir: ", err)
 					}
 
 					// restore certificate
-					err = os.Rename(c.CacheDir+"/backup-"+backupDate+"/key.pem", c.CacheDir+"/cert.pem")
+					backupCert := filepath.Join(c.CacheDir, "backup-"+backupDate, certFileName)
+					err = os.Rename(backupCert, filepath.Join(c.CacheDir, certFileName))
 					if err != nil {
 						log.Fatal("[FATAL] simplecert: failed to move cert into backup dir: ", err)
 					}
 
-					err = os.Remove(c.CacheDir + "/backup-" + backupDate)
+					// remove backup directory
+					err = os.Remove(filepath.Join(c.CacheDir, "backup-"+backupDate))
 					if err != nil {
 						log.Fatal("[FATAL] simplecert: failed to remove backup dir: ", err)
 					}

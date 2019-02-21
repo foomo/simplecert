@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -105,19 +106,19 @@ func renew(cert *certificate.Resource) {
 		// backup old cert and key
 		// create a new directory for those in cacheDir, named backup-{currentDate}
 		backupDate = time.Now().Format("2006-January-02")
-		err = os.Mkdir(c.CacheDir+"/backup-"+backupDate, c.CacheDirPerm)
+		err = os.Mkdir(filepath.Join(c.CacheDir, "backup-"+backupDate), c.CacheDirPerm)
 		if err != nil {
 			log.Fatal("[FATAL] simplecert: failed to create backup dir: ", err)
 		}
 
 		// backup private key
-		err = os.Rename(c.CacheDir+"/key.pem", c.CacheDir+"/backup-"+backupDate+"/key.pem")
+		err = os.Rename(filepath.Join(c.CacheDir, keyFileName), filepath.Join(c.CacheDir, "backup-"+backupDate, keyFileName))
 		if err != nil {
 			log.Fatal("[FATAL] simplecert: failed to move key into backup dir: ", err)
 		}
 
 		// backup certificate
-		err = os.Rename(c.CacheDir+"/cert.pem", c.CacheDir+"/backup-"+backupDate+"/key.pem")
+		err = os.Rename(filepath.Join(c.CacheDir, certFileName), filepath.Join(c.CacheDir, "backup-"+backupDate, keyFileName))
 		if err != nil {
 			log.Fatal("[FATAL] simplecert: failed to move cert into backup dir: ", err)
 		}
@@ -160,8 +161,8 @@ func renewalRoutine(cr *certificate.Resource) {
 
 // cert exists in cacheDir?
 func certCached(cacheDir string) bool {
-	_, errCert := os.Stat(cacheDir + "/cert.pem")
-	_, errKey := os.Stat(cacheDir + "/key.pem")
+	_, errCert := os.Stat(filepath.Join(cacheDir, certFileName))
+	_, errKey := os.Stat(filepath.Join(cacheDir, keyFileName))
 	if errCert == nil && errKey == nil {
 		return true
 	}
@@ -208,19 +209,19 @@ func saveCertToDisk(cert *certificate.Resource, cacheDir string) error {
 	}
 
 	// write certificate resource to disk
-	err = ioutil.WriteFile(cacheDir+"/CertResource.json", b, c.CacheDirPerm)
+	err = ioutil.WriteFile(filepath.Join(cacheDir, certResourceFileName), b, c.CacheDirPerm)
 	if err != nil {
 		return err
 	}
 
 	// write certificate PEM to disk
-	err = ioutil.WriteFile(cacheDir+"/cert.pem", cert.Certificate, c.CacheDirPerm)
+	err = ioutil.WriteFile(filepath.Join(cacheDir, certFileName), cert.Certificate, c.CacheDirPerm)
 	if err != nil {
 		return err
 	}
 
 	// write private key PEM to disk
-	err = ioutil.WriteFile(cacheDir+"/key.pem", cert.PrivateKey, c.CacheDirPerm)
+	err = ioutil.WriteFile(filepath.Join(cacheDir, keyFileName), cert.PrivateKey, c.CacheDirPerm)
 	if err != nil {
 		return err
 	}
@@ -247,6 +248,6 @@ func runCommand(cmd string, args ...string) {
 	out, err := exec.Command(cmd, args...).CombinedOutput()
 	if err != nil {
 		log.Println("[ERROR] failed to run command: ", cmd+strings.Join(args, " "))
-		log.Fatal("[ERROR] error: ", err, ", output: ", string(out))
+		log.Fatal("[FATAL] error: ", err, ", output: ", string(out))
 	}
 }

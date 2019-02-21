@@ -24,7 +24,7 @@ import (
 func updateHosts() {
 	hosts, err := goodhosts.NewHosts()
 	if err != nil {
-		log.Fatal("[ERROR] could not open hostsfile: ", err)
+		log.Fatal("[FATAL] could not open hostsfile: ", err)
 	}
 
 	for _, d := range c.Domains {
@@ -34,7 +34,7 @@ func updateHosts() {
 	}
 
 	if err := hosts.Flush(); err != nil {
-		log.Fatal("[ERROR] could not update /etc/hosts: ", err)
+		log.Fatal("[FATAL] could not update /etc/hosts: ", err)
 	}
 }
 
@@ -66,14 +66,14 @@ func createLocalCert(certFilePath, keyFilePath string) {
 	log.Println("[INFO] renaming", newCertFile, "to", certFilePath)
 	err := os.Rename(newCertFile, certFilePath)
 	if err != nil {
-		log.Fatal("[ERROR] failed to rename cert file: ", err)
+		log.Fatal("[FATAL] failed to rename cert file: ", err)
 	}
 
 	// rename key file
 	log.Println("[INFO] renaming", newKeyFile, "to", keyFilePath)
 	err = os.Rename(newKeyFile, keyFilePath)
 	if err != nil {
-		log.Fatal("[ERROR] failed to rename key file: ", err)
+		log.Fatal("[FATAL] failed to rename key file: ", err)
 	}
 }
 
@@ -85,7 +85,7 @@ func domainsChanged(certFilePath, keyFilePath string) bool {
 	// read certificate data from disk
 	certData, err := ioutil.ReadFile(certFilePath)
 	if err != nil {
-		log.Fatal("[ERROR] simplecert could not load X509 key pair: ", err)
+		log.Fatal("[FATAL] simplecert could not load X509 key pair: ", err)
 	}
 
 	// PEM decode
@@ -97,7 +97,7 @@ func domainsChanged(certFilePath, keyFilePath string) bool {
 	// parse certificate
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		log.Fatal("[ERROR] simplecert could not load X509 key pair: ", err)
+		log.Fatal("[FATAL] simplecert could not load X509 key pair: ", err)
 	}
 
 	// if the number of entries is not equal, bail out.
