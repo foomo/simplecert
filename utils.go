@@ -236,13 +236,17 @@ func renewalRoutine(cr *certificate.Resource) {
 		time.Sleep(c.CheckInterval)
 
 		// allow graceful shutdown of running services if required
-		c.WillRenewCertificate()
+		if c.WillRenewCertificate != nil {
+			c.WillRenewCertificate()
+		}
 
 		// renew the certificate
 		renew(cr)
 
 		// allow service restart if required
-		c.DidRenewCertificate()
+		if c.DidRenewCertificate != nil {
+			c.DidRenewCertificate()
+		}
 	}
 }
 

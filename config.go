@@ -10,11 +10,19 @@ package simplecert
 
 import (
 	"errors"
+	"log"
 	"os"
 	"time"
 )
 
-var c *Config
+var (
+	c *Config
+
+	errNoDirectoryURL = errors.New("simplecert: no directory url specified")
+	errNoMail         = errors.New("simplecert: no SSLEmail in config")
+	errNoDomains      = errors.New("simplecert: no domains specified")
+	errNoChallenge    = errors.New("simplecert: no challenge method specified")
+)
 
 // Default contains a default configuration
 var Default = &Config{
@@ -82,16 +90,29 @@ type Config struct {
 
 // CheckConfig checks if config can be used to obtain a cert
 func CheckConfig(c *Config) error {
+
 	if len(c.Domains) == 0 {
-		return errors.New("simplecert: no domains specified")
+		return errNoDomains
 	}
 	if !c.Local {
 		if c.SSLEmail == "" {
-			return errors.New("simplecert: no SSLEmail in config")
+			return errNoMail
 		}
 	}
 	if c.DirectoryURL == "" {
-		return errors.New("simplecert: no directory url specified")
+		return errNoDirectoryURL
 	}
+
+	if c.DNSProvider == "" && c.HTTPAddress == "" && c.TLSAddress == "" {
+		return errNoChallenge
+	}
+
+	if c.WillRenewCertificate == nil && (c.HTTPAddress != "" || c.TLSAddress != "") {
+		log.Println("[WARNING] no WillRenewCertificate handler specified to handle graceful server shutdown")
+	}
+	if c.DidRenewCertificate == nil && (c.HTTPAddress != "" || c.TLSAddress != "") {
+		log.Println("[WARNING] no DidRenewCertificate handler specified to bring the service back up after renewing the certificate")
+	}
+
 	return nil
 }

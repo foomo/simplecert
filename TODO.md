@@ -1,7 +1,5 @@
 # TODO
 
-- handle cert names for wildcard domains
-
 ## update readme
 
 - wrappers for ListenAndServeTLS
