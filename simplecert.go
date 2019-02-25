@@ -108,6 +108,12 @@ func Init(cfg *Config) (*CertReloader, error) {
 		/*
 		 *	Cert Found. Load it
 		 */
+
+		if domainsChanged(certFilePath, keyFilePath) {
+			log.Println("[INFO] domains have changed. Obtaining a new certificate...")
+			goto obtainNewCert
+		}
+
 		log.Println("[INFO] simplecert: found cert in cacheDir")
 
 		// read cert resource from disk
@@ -136,6 +142,8 @@ func Init(cfg *Config) (*CertReloader, error) {
 
 		return NewCertReloader(certFilePath, keyFilePath, logFile)
 	}
+
+obtainNewCert:
 
 	/*
 	 *	No Cert Found. Register a new one

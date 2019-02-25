@@ -22,5 +22,5 @@ func main() {
 		w.Write([]byte("hello"))
 	})
 
-	log.Fatal(simplecert.ListenAndServeTLSLocal(":443", nil, "*.myawesomewebsite.com"))
+	log.Fatal(simplecert.ListenAndServeTLSLocal(":443", nil, "*.myawesomewebsite.com", "myawesomewebsite.com", "sub.myawesomewebsite.com"))
 }

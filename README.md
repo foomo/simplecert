@@ -32,6 +32,8 @@ On startup, call the simplecert.Init() function and pass your config.
 You will receive a certReloader instance, that has a GetCertificateFunc to allow hot reloading the cert upon renewal.
 See Usage for a detailed example.
 
+A new certificate will be obtained automatically if the domains have changed, both in local and in production mode.
+
 For more advanced usage, see the config section for all configuration options.
 
 ## Index

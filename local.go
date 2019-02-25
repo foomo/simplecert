@@ -48,6 +48,8 @@ func updateHosts() {
 func createLocalCert(certFilePath, keyFilePath string) {
 
 	log.Println("[INFO] no cached cert found. Creating a new one for local development...")
+	log.Println("[INFO] please note that for this cert to be trusted by firefox or nodejs additional steps are necessary!")
+	log.Println("[INFO] see instructions at https://github.com/FiloSottile/mkcert")
 
 	// run mkcert to create root CA
 	runCommand("mkcert", "-install")
