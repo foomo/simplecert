@@ -115,6 +115,9 @@ func domainsChanged(certFilePath, keyFilePath string) bool {
 		log.Fatal("[FATAL] simplecert could not load X509 key pair: ", err)
 	}
 
+	// log.Println("[INFO] domains in cert: ", cert.DNSNames)
+	// log.Println("[INFO] domains in config: ", c.Domains)
+
 	// if the number of entries is not equal, bail out.
 	if len(cert.DNSNames) != len(c.Domains) {
 		return true

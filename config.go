@@ -109,10 +109,13 @@ func CheckConfig(c *Config) error {
 	}
 
 	if c.WillRenewCertificate == nil && (c.HTTPAddress != "" || c.TLSAddress != "") {
-		log.Println("[WARNING] no WillRenewCertificate handler specified to handle graceful server shutdown")
+		log.Println("[WARNING] no WillRenewCertificate handler specified, to handle graceful server shutdown!")
 	}
 	if c.DidRenewCertificate == nil && (c.HTTPAddress != "" || c.TLSAddress != "") {
-		log.Println("[WARNING] no DidRenewCertificate handler specified to bring the service back up after renewing the certificate")
+		log.Println("[WARNING] no DidRenewCertificate handler specified, to bring the service back up after renewing the certificate!")
+	}
+	if c.FailedToRenewCertificate == nil {
+		log.Println("[WARNING] no FailedToRenewCertificate handler specified! Simplecert will fatal on errors!")
 	}
 
 	return nil
