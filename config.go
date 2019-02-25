@@ -84,8 +84,9 @@ type Config struct {
 	UpdateHosts bool
 
 	// Handler funcs for graceful service shutdown and restoring
-	WillRenewCertificate func()
-	DidRenewCertificate  func()
+	WillRenewCertificate     func()
+	DidRenewCertificate      func()
+	FailedToRenewCertificate func(error)
 }
 
 // CheckConfig checks if config can be used to obtain a cert

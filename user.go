@@ -13,6 +13,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -49,7 +50,7 @@ func (u SSLUser) GetPrivateKey() crypto.PrivateKey {
 }
 
 // get SSL User from cacheDir or create a new one
-func getUser() SSLUser {
+func getUser() (SSLUser, error) {
 
 	// no cached cert. start from scratch
 	var u SSLUser
@@ -60,13 +61,13 @@ func getUser() SSLUser {
 		// user exists. load
 		err = json.Unmarshal(b, &u)
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to unmarshal SSLUser: ", err)
+			return u, fmt.Errorf("simplecert: failed to unmarshal SSLUser: %s", err)
 		}
 	} else {
 		// create private key
 		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 		if err != nil {
-			log.Fatal(err)
+			return u, fmt.Errorf("simplecert: failed to generate private key: %s", err)
 		}
 
 		// Create new user
@@ -76,7 +77,7 @@ func getUser() SSLUser {
 		}
 	}
 
-	return u
+	return u, nil
 }
 
 // save the user on disk

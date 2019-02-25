@@ -9,6 +9,7 @@
 package simplecert
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -25,7 +26,7 @@ import (
  *	ACMEClient
  */
 
-func createClient(u SSLUser) lego.Client {
+func createClient(u SSLUser) (lego.Client, error) {
 
 	// create lego config
 	config := lego.NewConfig(&u)
@@ -35,7 +36,7 @@ func createClient(u SSLUser) lego.Client {
 	// Create a new client instance
 	client, err := lego.NewClient(config)
 	if err != nil {
-		log.Fatal("[FATAL] simplecert: failed to create client", err)
+		return *client, fmt.Errorf("simplecert: failed to create client: %s", err)
 	}
 
 	log.Println("[INFO] simplecert: client creation complete")
@@ -46,21 +47,21 @@ func createClient(u SSLUser) lego.Client {
 
 	httpSlice := strings.Split(c.HTTPAddress, ":")
 	if len(httpSlice) != 2 {
-		log.Fatal("[FATAL] simplecert: invalid HTTP address: ", c.HTTPAddress)
+		return *client, fmt.Errorf("simplecert: invalid HTTP address: %s", c.HTTPAddress)
 	}
 	tlsSlice := strings.Split(c.TLSAddress, ":")
 	if len(tlsSlice) != 2 {
-		log.Fatal("[FATAL] simplecert: invalid TLS address: ", c.TLSAddress)
+		return *client, fmt.Errorf("simplecert: invalid TLS address: %s", c.TLSAddress)
 	}
 
 	// Set Endpoints
 	err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer(httpSlice[0], httpSlice[1]))
 	if err != nil {
-		log.Fatal("[FATAL] simplecert: setting http challenge provider failed: ", err)
+		return *client, fmt.Errorf("simplecert: setting HTTP challenge provider failed: %s", err)
 	}
 	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer(tlsSlice[0], tlsSlice[1]))
 	if err != nil {
-		log.Fatal("[FATAL] simplecert: setting tls challenge provider failed: ", err)
+		return *client, fmt.Errorf("simplecert: setting TLS challenge provider failed: %s", err)
 	}
 
 	// -------------------------------------------
@@ -70,12 +71,12 @@ func createClient(u SSLUser) lego.Client {
 	if c.DNSProvider != "" {
 		p, err := dns.NewDNSChallengeProviderByName(c.DNSProvider)
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: invalid dns provider specified in config: ", err)
+			return *client, fmt.Errorf("simplecert: setting DNS provider specified in config: %s", err)
 		}
 
 		client.Challenge.SetDNS01Provider(p)
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: setting dns challenge provider failed: ", err)
+			return *client, fmt.Errorf("simplecert: setting DNS challenge provider failed: %s", err)
 		}
 	}
 
@@ -85,12 +86,12 @@ func createClient(u SSLUser) lego.Client {
 		// Register Client and agree to TOS
 		reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to register client: ", err)
+			return *client, fmt.Errorf("simplecert: failed to register client: %s", err)
 		}
 		u.Registration = reg
 		log.Println("[INFO] simplecert: client registration complete: ", client)
 		saveUserToDisk(u, c.CacheDir)
 	}
 
-	return *client
+	return *client, nil
 }

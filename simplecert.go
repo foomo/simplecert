@@ -126,7 +126,10 @@ func Init(cfg *Config) (*CertReloader, error) {
 		cert := getACMECertResource(cr)
 
 		// renew cert if necessary
-		renew(cert)
+		errRenew := renew(cert)
+		if errRenew != nil {
+			log.Fatal("[FATAL] failed to renew cached cert on startup: ", errRenew)
+		}
 
 		// kickoff renewal routine
 		go renewalRoutine(cert)
@@ -138,8 +141,16 @@ func Init(cfg *Config) (*CertReloader, error) {
 	 *	No Cert Found. Register a new one
 	 */
 
+	u, err := getUser()
+	if err != nil {
+		log.Fatal("[FATAL] failed to get ACME user: ", err)
+	}
+
 	// get ACME Client
-	client := createClient(getUser())
+	client, err := createClient(u)
+	if err != nil {
+		log.Fatal("[FATAL] failed to create lego.Client: ", err)
+	}
 
 	// bundle CA with certificate to avoid "transport: x509: certificate signed by unknown authority" error
 	request := certificate.ObtainRequest{

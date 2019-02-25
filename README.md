@@ -226,6 +226,7 @@ type Config struct {
     // Handler funcs for graceful service shutdown and restoring
     WillRenewCertificate func()
     DidRenewCertificate  func()
+    FailedToRenewCertificate func(error)
 }
 ```
 

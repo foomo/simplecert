@@ -9,6 +9,7 @@
 package simplecert
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,19 +19,19 @@ import (
 	"github.com/xenolf/lego/certificate"
 )
 
-func renew(cert *certificate.Resource) {
+func renew(cert *certificate.Resource) error {
 
 	// Input certificate is PEM encoded. Decode it here as we may need the decoded
 	// cert later on in the renewal process. The input may be a bundle or a single certificate.
 	certificates, err := parsePEMBundle(cert.Certificate)
 	if err != nil {
-		log.Fatal("[FATAL] simplecert: failed to parsePEMBundle: ", err)
+		return fmt.Errorf("simplecert: failed to parsePEMBundle: %s", err)
 	}
 
 	// check if first cert is CA
 	x509Cert := certificates[0]
 	if x509Cert.IsCA {
-		log.Fatalf("[%s] Certificate bundle starts with a CA certificate", cert.Domain)
+		return fmt.Errorf("[%s] Certificate bundle starts with a CA certificate", cert.Domain)
 	}
 
 	// Calculate TimeLeft
@@ -42,14 +43,22 @@ func renew(cert *certificate.Resource) {
 
 		log.Println("[INFO] simplecert: renewing cert...")
 
+		u, err := getUser()
+		if err != nil {
+			return fmt.Errorf("simplecert: failed to get acme user: %s", err)
+		}
+
 		// get ACME Client
-		client := createClient(getUser())
+		client, err := createClient(u)
+		if err != nil {
+			return fmt.Errorf("simplecert: failed to create lego.Client: %s", err)
+		}
 
 		// start renewal
 		// bundle CA with certificate to avoid "transport: x509: certificate signed by unknown authority" error
 		cert, err := client.Certificate.Renew(*cert, true, false)
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to renew cert: ", err)
+			return fmt.Errorf("simplecert: failed to renew cert: %s", err)
 		}
 
 		// if we made it here we got a new cert
@@ -58,25 +67,25 @@ func renew(cert *certificate.Resource) {
 		backupDate = time.Now().Format("2006-January-02")
 		err = os.Mkdir(filepath.Join(c.CacheDir, "backup-"+backupDate), c.CacheDirPerm)
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to create backup dir: ", err)
+			return fmt.Errorf("simplecert: failed to create backup dir: %s", err)
 		}
 
 		// backup private key
 		err = os.Rename(filepath.Join(c.CacheDir, keyFileName), filepath.Join(c.CacheDir, "backup-"+backupDate, keyFileName))
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to move key into backup dir: ", err)
+			return fmt.Errorf("simplecert: failed to move key into backup dir: %s", err)
 		}
 
 		// backup certificate
 		err = os.Rename(filepath.Join(c.CacheDir, certFileName), filepath.Join(c.CacheDir, "backup-"+backupDate, keyFileName))
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to move cert into backup dir: ", err)
+			return fmt.Errorf("simplecert: failed to move cert into backup dir: %s", err)
 		}
 
 		// Save new cert to disk
 		err = saveCertToDisk(cert, c.CacheDir)
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to write new cert to disk")
+			return fmt.Errorf("simplecert: failed to write new cert to disk: %s", err)
 		}
 
 		log.Println("[INFO] simplecert: wrote new cert to disk! triggering reload via SIGHUP")
@@ -84,9 +93,11 @@ func renew(cert *certificate.Resource) {
 		// trigger reload by sending our process a SIGHUP
 		err = syscall.Kill(os.Getpid(), syscall.SIGHUP)
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to trigger reload of renewed certificate: ", err)
+			return fmt.Errorf("simplecert: failed to trigger reload of renewed certificate: %s", err)
 		}
 	}
+
+	return nil
 }
 
 // take care of checking the cert in the configured interval
@@ -104,11 +115,22 @@ func renewalRoutine(cr *certificate.Resource) {
 		}
 
 		// renew the certificate
-		renew(cr)
+		err := renew(cr)
+		if err != nil { // something went wrong.
 
-		// allow service restart if required
-		if c.DidRenewCertificate != nil {
-			c.DidRenewCertificate()
+			// call handler if set
+			if c.FailedToRenewCertificate != nil {
+				c.FailedToRenewCertificate(err)
+			} else {
+				// otherwise fatal
+				log.Fatal("[FATAL] failed to renew cert: ", err.Error())
+			}
+
+		} else { // all good.
+			// allow service restart if required
+			if c.DidRenewCertificate != nil {
+				c.DidRenewCertificate()
+			}
 		}
 	}
 }
