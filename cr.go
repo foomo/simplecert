@@ -9,7 +9,7 @@
 package simplecert
 
 import (
-	"github.com/xenolf/lego/certificate"
+	"github.com/go-acme/lego/certificate"
 )
 
 // CR represents an ACME Certificate Resource
