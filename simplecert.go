@@ -16,7 +16,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xenolf/lego/certificate"
+	"github.com/go-acme/lego/certificate"
 )
 
 const (

@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/xenolf/lego/certificate"
+	"github.com/go-acme/lego/certificate"
 )
 
 func renew(cert *certificate.Resource) error {

@@ -12,7 +12,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/foomo/simplecert"
+	"github.com/gosticks/simplecert"
 )
 
 func main() {
