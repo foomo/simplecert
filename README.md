@@ -16,7 +16,7 @@
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/foomo/simplecert)
 
 Obtains certificates automatically, and manages renewal and hot reload for your Golang application.
-It uses the [LEGO Library](https://github.com/xenolf/lego) to perform ACME challenges,
+It uses the [LEGO Library](https://github.com/go-acme/lego) to perform ACME challenges,
 and the [mkcert](https://github.com/FiloSottile/mkcert) utility to generate self-signed trusted certificates for local development.
 
 Main goals:
@@ -226,7 +226,7 @@ type Config struct {
     CacheDir string
 
     // DNSProvider name for DNS challenges (optional)
-    // see: https://godoc.org/github.com/xenolf/lego/providers/dns
+    // see: https://godoc.org/github.com/go-acme/lego/providers/dns
     DNSProvider string
 
     // Local runmode
