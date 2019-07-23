@@ -22,6 +22,7 @@ var (
 	errNoMail         = errors.New("simplecert: no SSLEmail in config")
 	errNoDomains      = errors.New("simplecert: no domains specified")
 	errNoChallenge    = errors.New("simplecert: no challenge method specified")
+	errNoCacheDir     = errors.New("simplecert: no cache directory specified")
 )
 
 // Default contains a default configuration
@@ -36,7 +37,7 @@ var Default = &Config{
 	TLSAddress:    ":443",
 	CacheDirPerm:  0700,
 	Domains:       []string{},
-	CacheDir:      "",
+	CacheDir:      "letsencrypt",
 	DNSProvider:   "",
 	Local:         false,
 	UpdateHosts:   true,
@@ -74,7 +75,7 @@ type Config struct {
 	CacheDir string
 
 	// DNSProvider name for DNS challenges (optional)
-	// see: https://godoc.org/github.com/xenolf/lego/providers/dns
+	// see: https://godoc.org/github.com/go-acme/lego/providers/dns
 	DNSProvider string
 
 	// Local runmode
@@ -92,6 +93,9 @@ type Config struct {
 // CheckConfig checks if config can be used to obtain a cert
 func CheckConfig(c *Config) error {
 
+	if c.CacheDir == "" {
+		return errNoCacheDir
+	}
 	if len(c.Domains) == 0 {
 		return errNoDomains
 	}
