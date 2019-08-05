@@ -8,6 +8,7 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.1.0 // indirect
 	github.com/Azure/go-autorest/autorest/to v0.2.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.1.0 // indirect
+	github.com/JamesClonk/vultr v2.0.1+incompatible // indirect
 	github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87 // indirect
 	github.com/akamai/AkamaiOPEN-edgegrid-golang v0.8.0 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190719095124-80992abcaefa // indirect
@@ -15,14 +16,14 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cloudflare/cloudflare-go v0.9.4 // indirect
 	github.com/cpu/goacmedns v0.0.1 // indirect
-	github.com/decker502/dnspod-go v0.2.0 // indirect
+	github.com/decker502/dnspod-go v0.0.0-20180416134550-83a3ba562b04
 	github.com/dnsimple/dnsimple-go v0.30.0 // indirect
 	github.com/exoscale/egoscale v0.18.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/foomo/tlsconfig v0.0.0-20180418120404-b67861b076c9
-	github.com/go-acme/lego v2.7.1+incompatible
+	github.com/go-acme/lego v2.6.0+incompatible
 	github.com/go-errors/errors v1.0.1 // indirect
-	github.com/gophercloud/gophercloud v0.2.0 // indirect
+	github.com/gophercloud/gophercloud v0.0.0-20190204021847-a2b0ad6ce68c // indirect
 	github.com/iij/doapi v0.0.0-20190504054126-0bbf12d6d7df // indirect
 	github.com/kolo/xmlrpc v0.0.0-20190717152603-07c4ee3fd181 // indirect
 	github.com/labbsr0x/bindman-dns-webhook v1.0.0 // indirect
