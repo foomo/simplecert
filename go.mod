@@ -1,6 +1,6 @@
 module github.com/foomo/simplecert
 
-go 1.12
+go 1.13
 
 require (
 	github.com/Azure/azure-sdk-for-go v31.1.0+incompatible // indirect
@@ -14,9 +14,9 @@ require (
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190719095124-80992abcaefa // indirect
 	github.com/aws/aws-sdk-go v1.21.2 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-	github.com/cloudflare/cloudflare-go v0.9.4 // indirect
+	github.com/cloudflare/cloudflare-go v0.10.1 // indirect
 	github.com/cpu/goacmedns v0.0.1 // indirect
-	github.com/decker502/dnspod-go v0.0.0-20180416134550-83a3ba562b04
+	github.com/decker502/dnspod-go v0.0.0-20180416134550-83a3ba562b04 // indirect
 	github.com/dnsimple/dnsimple-go v0.30.0 // indirect
 	github.com/exoscale/egoscale v0.18.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
@@ -35,13 +35,11 @@ require (
 	github.com/namedotcom/go v0.0.0-20180403034216-08470befbe04 // indirect
 	github.com/nrdcg/auroradns v1.0.0 // indirect
 	github.com/nrdcg/goinwx v0.6.0 // indirect
-	github.com/nrdcg/namesilo v0.2.0 // indirect
 	github.com/oracle/oci-go-sdk v5.15.0+incompatible // indirect
 	github.com/ovh/go-ovh v0.0.0-20181109152953-ba5adb4cf014 // indirect
 	github.com/sacloud/libsacloud v1.26.1 // indirect
 	github.com/timewasted/linode v0.0.0-20160829202747-37e84520dcf7 // indirect
 	github.com/transip/gotransip v5.8.2+incompatible // indirect
-	github.com/vultr/govultr v0.1.4 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7 // indirect
 	google.golang.org/api v0.7.0 // indirect
