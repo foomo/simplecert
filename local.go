@@ -120,6 +120,7 @@ func domainsChanged(certFilePath, keyFilePath string) bool {
 
 	// if the number of entries is not equal, bail out.
 	if len(cert.DNSNames) != len(c.Domains) {
+		log.Println("cert.DNSNames:", cert.DNSNames, "!=", "c.Domains:", c.Domains)
 		return true
 	}
 
