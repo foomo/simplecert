@@ -127,6 +127,7 @@ func domainsChanged(certFilePath, keyFilePath string) bool {
 	// compare each entry
 	for i, d := range cert.DNSNames {
 		if d != c.Domains[i] {
+			log.Println("cert.DNSNames:", cert.DNSNames, "!=", "c.Domains:", c.Domains)
 			return true
 		}
 	}
