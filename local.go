@@ -120,14 +120,22 @@ func domainsChanged(certFilePath, keyFilePath string) bool {
 
 	// if the number of entries is not equal, bail out.
 	if len(cert.DNSNames) != len(c.Domains) {
-		log.Println("cert.DNSNames:", cert.DNSNames, "!=", "c.Domains:", c.Domains)
+		log.Println("[ERROR] len(cert.DNSNames):", cert.DNSNames, "!=", "len(c.Domains):", c.Domains)
 		return true
 	}
 
-	// compare each entry
-	for i, d := range cert.DNSNames {
-		if d != c.Domains[i] {
-			log.Println("cert.DNSNames:", cert.DNSNames, "!=", "c.Domains:", c.Domains)
+	// check if all entries match
+	// the order of entries is not relevant
+	// since letsencrypt issues certs for a set of domains
+	for _, d := range cert.DNSNames {
+		var found bool
+		for _, dd := range c.Domains {
+			if d == dd {
+				found = true
+			}
+		}
+		if !found {
+			log.Println("[ERROR] could not find domain", d, "in c.Domains:", c.Domains)
 			return true
 		}
 	}
