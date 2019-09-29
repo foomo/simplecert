@@ -34,7 +34,7 @@ const (
 // 4. Obtain a new certificate
 // 5. Save To Disk
 // 6. Kickoff Renewal Routine
-func Init(cfg *Config) (*CertReloader, error) {
+func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 
 	// validate config
 	err := CheckConfig(cfg)
@@ -94,7 +94,7 @@ func Init(cfg *Config) (*CertReloader, error) {
 		}
 
 		// return a cert reloader for the local cert
-		return NewCertReloader(certFilePath, keyFilePath, logFile)
+		return NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
 	}
 
 	var (
@@ -140,7 +140,7 @@ func Init(cfg *Config) (*CertReloader, error) {
 		// kickoff renewal routine
 		go renewalRoutine(cert)
 
-		return NewCertReloader(certFilePath, keyFilePath, logFile)
+		return NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
 	}
 
 obtainNewCert:
@@ -187,5 +187,5 @@ obtainNewCert:
 	// kickoff renewal routine
 	go renewalRoutine(cert)
 
-	return NewCertReloader(certFilePath, keyFilePath, logFile)
+	return NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
 }
