@@ -31,7 +31,8 @@ type CertReloader struct {
 }
 
 // NewCertReloader returns a new CertReloader instance
-func NewCertReloader(certPath, keyPath string, logFile *os.File) (*CertReloader, error) {
+// the optional cleanup func will be called when a syscall.SIGINT, syscall.SIGABRT is received
+func NewCertReloader(certPath, keyPath string, logFile *os.File, cleanup func()) (*CertReloader, error) {
 
 	// init reloader
 	reloader := &CertReloader{
@@ -86,7 +87,15 @@ func NewCertReloader(certPath, keyPath string, logFile *os.File) (*CertReloader,
 					log.Fatal("[FATAL] simplecert: failed to close logfile handle: ", err)
 				}
 				log.Println("[INFO] simplecert: closed logfile handle")
-				os.Exit(0)
+
+				// run custom cleanup func if available
+				if cleanup != nil {
+					cleanup()
+				}
+
+				// keep running.
+				// it is up to the caller of simplecert.NewCertReloader()
+				// to decide what to do now
 			}
 		}
 	}()
