@@ -11,13 +11,11 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190923070751-d615ccdd3e09 // indirect
 	github.com/aws/aws-sdk-go v1.24.4 // indirect
-	github.com/cloudflare/cloudflare-go v0.10.1 // indirect
 	github.com/foomo/tlsconfig v0.0.0-20180418120404-b67861b076c9
-	github.com/go-acme/lego/v3 v3.0.2
+	github.com/go-acme/lego/v3 v3.1.0
 	github.com/go-ini/ini v1.48.0 // indirect
 	github.com/gophercloud/gophercloud v0.4.0 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20190909154602-56d5ec7c422e // indirect
-	github.com/labbsr0x/bindman-dns-webhook v1.0.2 // indirect
 	github.com/lextoumbourou/goodhosts v2.1.0+incompatible
 	github.com/miekg/dns v1.1.17 // indirect
 	github.com/oracle/oci-go-sdk v10.0.0+incompatible // indirect
@@ -26,10 +24,8 @@ require (
 	go.opencensus.io v0.22.1 // indirect
 	go.uber.org/ratelimit v0.1.0 // indirect
 	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392 // indirect
-	golang.org/x/net v0.0.0-20190923162816-aa69164e4478 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/sys v0.0.0-20190924062700-2aa67d56cdd7 // indirect
-	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0 // indirect
 	google.golang.org/api v0.10.0 // indirect
 	google.golang.org/appengine v1.6.3 // indirect
 	google.golang.org/genproto v0.0.0-20190916214212-f660b8655731 // indirect
