@@ -10,12 +10,12 @@ package simplecert
 
 import (
 	"fmt"
+	"github.com/go-acme/lego/v3/challenge/tlsalpn01"
 	"log"
 	"strings"
 
 	"github.com/go-acme/lego/v3/certcrypto"
 	"github.com/go-acme/lego/v3/challenge/http01"
-	"github.com/go-acme/lego/v3/challenge/tlsalpn01"
 	"github.com/go-acme/lego/v3/lego"
 	"github.com/go-acme/lego/v3/providers/dns"
 	"github.com/go-acme/lego/v3/registration"
@@ -35,7 +35,7 @@ func createClient(u SSLUser) (lego.Client, error) {
 	// Create a new client instance
 	client, err := lego.NewClient(config)
 	if err != nil {
-		return *client, fmt.Errorf("simplecert: failed to create client: %s", err)
+		return lego.Client{}, fmt.Errorf("simplecert: failed to create client: %s", err)
 	}
 
 	log.Println("[INFO] simplecert: client creation complete")
@@ -44,23 +44,27 @@ func createClient(u SSLUser) (lego.Client, error) {
 	// HTTP & TLS Challenges
 	// -------------------------------------------
 
-	httpSlice := strings.Split(c.HTTPAddress, ":")
-	if len(httpSlice) != 2 {
-		return *client, fmt.Errorf("simplecert: invalid HTTP address: %s", c.HTTPAddress)
-	}
-	tlsSlice := strings.Split(c.TLSAddress, ":")
-	if len(tlsSlice) != 2 {
-		return *client, fmt.Errorf("simplecert: invalid TLS address: %s", c.TLSAddress)
+	if c.TLSAddress != "" {
+		tlsSlice := strings.Split(c.TLSAddress, ":")
+		if len(tlsSlice) != 2 {
+			return *client, fmt.Errorf("simplecert: invalid TLS address: %s", c.TLSAddress)
+		}
+		err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer(tlsSlice[0], tlsSlice[1]))
+		if err != nil {
+			return *client, fmt.Errorf("simplecert: setting TLS challenge provider failed: %s", err)
+		}
 	}
 
-	// Set Endpoints
-	err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer(httpSlice[0], httpSlice[1]))
-	if err != nil {
-		return *client, fmt.Errorf("simplecert: setting HTTP challenge provider failed: %s", err)
-	}
-	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer(tlsSlice[0], tlsSlice[1]))
-	if err != nil {
-		return *client, fmt.Errorf("simplecert: setting TLS challenge provider failed: %s", err)
+	if c.HTTPAddress != "" {
+		httpSlice := strings.Split(c.HTTPAddress, ":")
+		if len(httpSlice) != 2 {
+			return *client, fmt.Errorf("simplecert: invalid HTTP address: %s", c.HTTPAddress)
+		}
+
+		err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer(httpSlice[0], httpSlice[1]))
+		if err != nil {
+			return *client, fmt.Errorf("simplecert: setting HTTP challenge provider failed: %s", err)
+		}
 	}
 
 	// -------------------------------------------
@@ -73,10 +77,14 @@ func createClient(u SSLUser) (lego.Client, error) {
 			return *client, fmt.Errorf("simplecert: setting DNS provider specified in config: %s", err)
 		}
 
-		client.Challenge.SetDNS01Provider(p)
+		err = client.Challenge.SetDNS01Provider(p)
 		if err != nil {
 			return *client, fmt.Errorf("simplecert: setting DNS challenge provider failed: %s", err)
 		}
+	}
+
+	if c.DNSProvider == "" && c.TLSAddress == "" && c.HTTPAddress == "" {
+		return *client, fmt.Errorf("simplecert: you must specify at least one of the challenge types: dns, http or tls")
 	}
 
 	// register if necessary
