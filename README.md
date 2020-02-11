@@ -64,19 +64,19 @@ Simplecert provides a few wrappers similar to *http.ListenAndServe* from the go 
 For running on a production server:
 
 ```go
-func ListenAndServeTLS(addr string, handler http.Handler, mail string, domains ...string) error
+func ListenAndServeTLS(addr string, handler http.Handler, mail string, cleanup func(), domains ...string) error
 ```
 
 For local development:
 
 ```go
-func ListenAndServeTLSLocal(addr string, handler http.Handler, domains ...string) error
+func ListenAndServeTLSLocal(addr string, handler http.Handler, cleanup func(), domains ...string) error
 ```
 
 The custom wrapper allows to pass a *simplecert.Config* and a *tls.Config*:
 
 ```go
-func ListenAndServeTLSCustom(addr string, handler http.Handler, cfg *Config, tlsconf *tls.Config, domains ...string) error
+func ListenAndServeTLSCustom(addr string, handler http.Handler, cfg *Config, tlsconf *tls.Config, cleanup func(), domains ...string) error
 ```
 
 There is a util for redirecting HTTP requests to HTTPS:
@@ -84,6 +84,14 @@ There is a util for redirecting HTTP requests to HTTPS:
 ```go
 func Redirect(w http.ResponseWriter, req *http.Request)
 ```
+
+And a function to initialize simplecert after applying the desired configuration:
+
+```go
+func Init(cfg *Config, cleanup func()) (*CertReloader, error)
+```
+
+> The cleanup function will be called upon receiving the syscall.SIGINT or syscall.SIGABRT signal and can be used to stop your backend gracefully. If you don't need it, simpy pass nil.
 
 ## Local Development
 
@@ -127,7 +135,7 @@ cfg.Domains = []string{"yourdomain.com", "www.yourdomain.com"}
 cfg.CacheDir = "/etc/letsencrypt/live/yourdomain.com"
 cfg.SSLEmail = "you@emailprovider.com"
 cfg.DNSProvider = "cloudflare"
-certReloader, err := simplecert.Init(cfg)
+certReloader, err := simplecert.Init(cfg, nil)
 if err != nil {
     log.Fatal("simplecert init failed: ", err)
 }
@@ -250,7 +258,7 @@ A custom initialization:
 
     go run examples/custom/main.go
 
-And a simple example for local development:
+And a simple example for local development with a locally trusted certificate (requires [mkcert](https://github.com/FiloSottile/mkcert) to be installed):
 
     go run examples/simple/main.go
 

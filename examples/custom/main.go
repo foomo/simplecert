@@ -9,6 +9,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -31,7 +32,11 @@ func main() {
 	cfg.CacheDir = "letsencrypt"
 	cfg.SSLEmail = "you@emailprovider.com"
 	cfg.Local = true
-	certReloader, err := simplecert.Init(cfg)
+	certReloader, err := simplecert.Init(cfg, func() {
+		// this function will be called upon receiving the syscall.SIGINT or syscall.SIGABRT signal
+		// and can be used to stop your backend gracefully
+		fmt.Println("cleaning up...")
+	})
 	if err != nil {
 		log.Fatal("simplecert init failed: ", err)
 	}
