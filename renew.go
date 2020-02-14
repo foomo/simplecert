@@ -19,7 +19,7 @@ import (
 	"github.com/go-acme/lego/v3/certificate"
 )
 
-func renew(cert *certificate.Resource) error {
+func renew(cert *certificate.Resource, cfg *Config) error {
 
 	// Input certificate is PEM encoded. Decode it here as we may need the decoded
 	// cert later on in the renewal process. The input may be a bundle or a single certificate.
@@ -88,12 +88,18 @@ func renew(cert *certificate.Resource) error {
 			return fmt.Errorf("simplecert: failed to write new cert to disk: %s", err)
 		}
 
-		log.Println("[INFO] simplecert: wrote new cert to disk! triggering reload via SIGHUP")
+		log.Println("[INFO] simplecert: wrote new cert to disk!")
 
-		// trigger reload by sending our process a SIGHUP
-		err = syscall.Kill(os.Getpid(), syscall.SIGHUP)
-		if err != nil {
-			return fmt.Errorf("simplecert: failed to trigger reload of renewed certificate: %s", err)
+		// if not using a DNS provider: trigger reload via SIGHUP
+		if cfg.DNSProvider == "" {
+
+			log.Println("[INFO] triggering reload via SIGHUP")
+
+			// trigger reload by sending our process a SIGHUP
+			err = syscall.Kill(os.Getpid(), syscall.SIGHUP)
+			if err != nil {
+				return fmt.Errorf("simplecert: failed to trigger reload of renewed certificate: %s", err)
+			}
 		}
 	}
 
@@ -103,7 +109,7 @@ func renew(cert *certificate.Resource) error {
 // take care of checking the cert in the configured interval
 // and renew if timeLeft is less than or equal to renewBefore
 // when initially started, the certificate is checked against the thresholds and renewed if neccessary
-func renewalRoutine(cr *certificate.Resource) {
+func renewalRoutine(cr *certificate.Resource, cfg *Config) {
 
 	for {
 		// sleep for duration of checkInterval
@@ -115,7 +121,7 @@ func renewalRoutine(cr *certificate.Resource) {
 		}
 
 		// renew the certificate
-		err := renew(cr)
+		err := renew(cr, cfg)
 		if err != nil { // something went wrong.
 
 			// call handler if set

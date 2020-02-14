@@ -29,8 +29,8 @@ var (
 var Default = &Config{
 	// 30 Days before expiration
 	RenewBefore: 30 * 24,
-	// Once a week
-	CheckInterval: 7 * 24 * time.Hour,
+	// every two days
+	CheckInterval: 2 * 24 * time.Hour,
 	SSLEmail:      "",
 	DirectoryURL:  "https://acme-v02.api.letsencrypt.org/directory",
 	HTTPAddress:   ":80",
