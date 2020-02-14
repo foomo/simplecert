@@ -63,8 +63,8 @@ func renew(cert *certificate.Resource, cfg *Config) error {
 
 		// if we made it here we got a new cert
 		// backup old cert and key
-		// create a new directory for those in cacheDir, named backup-{currentDate}
-		backupDate = time.Now().Format("2006-January-02")
+		// create a new directory for those in cacheDir, named backup-{currentDate}-{currentTime}
+		backupDate = time.Now().Format("2006-January-02-1504")
 		err = os.Mkdir(filepath.Join(c.CacheDir, "backup-"+backupDate), c.CacheDirPerm)
 		if err != nil {
 			return fmt.Errorf("simplecert: failed to create backup dir: %s", err)
