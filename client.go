@@ -10,9 +10,10 @@ package simplecert
 
 import (
 	"fmt"
-	"github.com/go-acme/lego/v3/challenge/tlsalpn01"
 	"log"
 	"strings"
+
+	"github.com/go-acme/lego/v3/challenge/tlsalpn01"
 
 	"github.com/go-acme/lego/v3/certcrypto"
 	"github.com/go-acme/lego/v3/challenge/http01"
@@ -41,6 +42,24 @@ func createClient(u SSLUser) (lego.Client, error) {
 	log.Println("[INFO] simplecert: client creation complete")
 
 	// -------------------------------------------
+	// DNS Challenge
+	// -------------------------------------------
+
+	if c.DNSProvider != "" {
+		p, err := dns.NewDNSChallengeProviderByName(c.DNSProvider)
+		if err != nil {
+			return *client, fmt.Errorf("simplecert: setting DNS provider specified in config: %s", err)
+		}
+
+		err = client.Challenge.SetDNS01Provider(p)
+		if err != nil {
+			return *client, fmt.Errorf("simplecert: setting DNS challenge provider failed: %s", err)
+		}
+
+		log.Println("[INFO] simplecert: set DNS challenge")
+	}
+
+	// -------------------------------------------
 	// HTTP Challenges
 	// -------------------------------------------
 
@@ -53,6 +72,8 @@ func createClient(u SSLUser) (lego.Client, error) {
 		if err != nil {
 			return *client, fmt.Errorf("simplecert: setting HTTP challenge provider failed: %s", err)
 		}
+
+		log.Println("[INFO] simplecert: set HTTP challenge")
 	}
 
 	// -------------------------------------------
@@ -68,22 +89,8 @@ func createClient(u SSLUser) (lego.Client, error) {
 		if err != nil {
 			return *client, fmt.Errorf("simplecert: setting TLS challenge provider failed: %s", err)
 		}
-	}
 
-	// -------------------------------------------
-	// DNS Challenge
-	// -------------------------------------------
-
-	if c.DNSProvider != "" {
-		p, err := dns.NewDNSChallengeProviderByName(c.DNSProvider)
-		if err != nil {
-			return *client, fmt.Errorf("simplecert: setting DNS provider specified in config: %s", err)
-		}
-
-		err = client.Challenge.SetDNS01Provider(p)
-		if err != nil {
-			return *client, fmt.Errorf("simplecert: setting DNS challenge provider failed: %s", err)
-		}
+		log.Println("[INFO] simplecert: set TLS challenge")
 	}
 
 	if c.DNSProvider == "" && c.TLSAddress == "" && c.HTTPAddress == "" {
