@@ -26,6 +26,8 @@ const (
 	keyFileName          = "key.pem"
 )
 
+var local bool
+
 // Init obtains a new LetsEncrypt cert for the specified domains if there is none in cacheDir
 // or loads an existing one. Certs will be auto renewed in the configured interval.
 // 1. Check if we have a cached certificate, if yes kickoff renewal routine and return
@@ -59,6 +61,10 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 	log.SetOutput(io.MultiWriter(os.Stdout, logFile))
 
 	if c.Local {
+		// Status() needs to know whether simplecert is running locally
+		// since there is no need to expose the entire configuration for this
+		// we will only make local accessible within simplecert
+		local = true
 
 		// update the cachedir path
 		// certs used in local mode are stored in the "local" subfolder

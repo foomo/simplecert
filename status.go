@@ -16,8 +16,13 @@ const errInternal = "internal error"
 // the actual error message will never be passed to the caller and only appear in the simplecert logs
 func Status() string {
 
+	path := filepath.Join(c.CacheDir, certResourceFileName)
+	if local {
+		path = filepath.Join(c.CacheDir, "cert.pem")
+	}
+
 	// read cert resource from disk
-	b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		fmt.Println("[Status] simplecert: failed to read CertResource.json from disk: ", err)
 		return errInternal
