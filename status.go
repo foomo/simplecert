@@ -66,10 +66,7 @@ func Status() string {
 		return errInternal
 	}
 
-	// iterate over all certs?
-	fmt.Println("num certificates:", len(certificates))
-
 	// Calculate TimeLeft
 	timeLeft := x509Cert.NotAfter.Sub(time.Now().UTC())
-	return fmt.Sprintf("[%s] acme: %d hours remaining, renewBefore: %d", x509Cert.DNSNames, int(timeLeft.Hours()), int(c.RenewBefore))
+	return fmt.Sprintf("%s\n%d hours remaining, renewed %d hours before expiry", x509Cert.DNSNames, int(timeLeft.Hours()), int(c.RenewBefore))
 }
