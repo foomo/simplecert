@@ -16,31 +16,39 @@ const errInternal = "internal error"
 // the actual error message will never be passed to the caller and only appear in the simplecert logs
 func Status() string {
 
-	path := filepath.Join(c.CacheDir, certResourceFileName)
-	if local {
-		path = filepath.Join(c.CacheDir, "cert.pem")
-	}
+	var certData []byte
+	if !local {
 
-	// read cert resource from disk
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		fmt.Println("[Status] simplecert: failed to read CertResource.json from disk: ", err)
-		return errInternal
-	}
+		// read cert resource from disk
+		b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
+		if err != nil {
+			fmt.Println("[Status] simplecert: failed to read CertResource.json from disk: ", err)
+			return errInternal
+		}
 
-	// unmarshal certificate resource
-	var cr CR
-	err = json.Unmarshal(b, &cr)
-	if err != nil {
-		fmt.Println("[Status] simplecert: failed to unmarshal certificate resource: ", err)
-		return errInternal
-	}
+		// unmarshal certificate resource
+		var cr CR
+		err = json.Unmarshal(b, &cr)
+		if err != nil {
+			fmt.Println("[Status] simplecert: failed to unmarshal certificate resource: ", err)
+			return errInternal
+		}
 
-	cert := getACMECertResource(cr)
+		cert := getACMECertResource(cr)
+		certData = cert.Certificate
+	} else {
+		// read local cert data from disk
+		var err error
+		certData, err = ioutil.ReadFile(filepath.Join(c.CacheDir, "cert.pem"))
+		if err != nil {
+			fmt.Println("[Status] simplecert: failed to read cert.pem from disk: ", err)
+			return errInternal
+		}
+	}
 
 	// Input certificate is PEM encoded. Decode it here as we may need the decoded
 	// cert later on in the renewal process. The input may be a bundle or a single certificate.
-	certificates, err := parsePEMBundle(cert.Certificate)
+	certificates, err := parsePEMBundle(certData)
 	if err != nil {
 		fmt.Println(fmt.Errorf("simplecert: failed to parsePEMBundle: %s", err))
 		return errInternal
