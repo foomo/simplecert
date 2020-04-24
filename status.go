@@ -8,13 +8,18 @@ import (
 	"time"
 )
 
-const errInternal = "internal error"
+type CertStatus struct {
+	Domains []string
+	RenewBefore int
+	Expires int
+}
 
 // Status can be used to check the validity status of the certificate
 // as well as the configured renewal interval
 // in case of errors, they will simply be logged, but should not disrupt the service
 // the actual error message will never be passed to the caller and only appear in the simplecert logs
-func Status() string {
+// therefore always check if you received a result != nil when calling Status()
+func Status() *CertStatus {
 
 	var certData []byte
 	if !local {
@@ -23,7 +28,7 @@ func Status() string {
 		b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
 		if err != nil {
 			fmt.Println("[Status] simplecert: failed to read CertResource.json from disk: ", err)
-			return errInternal
+			return nil
 		}
 
 		// unmarshal certificate resource
@@ -31,7 +36,7 @@ func Status() string {
 		err = json.Unmarshal(b, &cr)
 		if err != nil {
 			fmt.Println("[Status] simplecert: failed to unmarshal certificate resource: ", err)
-			return errInternal
+			return nil
 		}
 
 		cert := getACMECertResource(cr)
@@ -42,7 +47,7 @@ func Status() string {
 		certData, err = ioutil.ReadFile(filepath.Join(c.CacheDir, "cert.pem"))
 		if err != nil {
 			fmt.Println("[Status] simplecert: failed to read cert.pem from disk: ", err)
-			return errInternal
+			return nil
 		}
 	}
 
@@ -50,23 +55,27 @@ func Status() string {
 	// cert later on in the renewal process. The input may be a bundle or a single certificate.
 	certificates, err := parsePEMBundle(certData)
 	if err != nil {
-		fmt.Println(fmt.Errorf("simplecert: failed to parsePEMBundle: %s", err))
-		return errInternal
+		fmt.Println(fmt.Errorf("[Status] simplecert: failed to parsePEMBundle: %s", err))
+		return nil
 	}
 
 	if len(certificates) == 0 {
 		fmt.Println("no certs found")
-		return errInternal
+		return nil
 	}
 
 	// check if first cert is CA
 	x509Cert := certificates[0]
 	if x509Cert.IsCA {
-		fmt.Println(fmt.Errorf("[%s] Certificate bundle starts with a CA certificate", x509Cert.DNSNames))
-		return errInternal
+		fmt.Println(fmt.Errorf("[Status][%s] certificate bundle starts with a CA certificate", x509Cert.DNSNames))
+		return nil
 	}
 
 	// Calculate TimeLeft
 	timeLeft := x509Cert.NotAfter.Sub(time.Now().UTC())
-	return fmt.Sprintf("%s\n%d hours remaining, renewed %d hours before expiry", x509Cert.DNSNames, int(timeLeft.Hours()), int(c.RenewBefore))
+	return &CertStatus{
+		Domains: x509Cert.DNSNames,
+		Expires: int(timeLeft.Hours()),
+		RenewBefore: c.RenewBefore,
+	}
 }
