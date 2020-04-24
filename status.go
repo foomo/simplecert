@@ -62,7 +62,7 @@ func Status() string {
 	// check if first cert is CA
 	x509Cert := certificates[0]
 	if x509Cert.IsCA {
-		fmt.Println(fmt.Errorf("[%s] Certificate bundle starts with a CA certificate", cert.Domain))
+		fmt.Println(fmt.Errorf("[%s] Certificate bundle starts with a CA certificate", x509Cert.DNSNames))
 		return errInternal
 	}
 
@@ -71,5 +71,5 @@ func Status() string {
 
 	// Calculate TimeLeft
 	timeLeft := x509Cert.NotAfter.Sub(time.Now().UTC())
-	return fmt.Sprintf("[%s] acme: %d hours remaining, renewBefore: %d", cert.Domain, int(timeLeft.Hours()), int(c.RenewBefore))
+	return fmt.Sprintf("[%s] acme: %d hours remaining, renewBefore: %d", x509Cert.DNSNames, int(timeLeft.Hours()), int(c.RenewBefore))
 }
