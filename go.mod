@@ -12,14 +12,14 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
 	github.com/akamai/AkamaiOPEN-edgegrid-golang v0.9.11 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.131 // indirect
-	github.com/aws/aws-sdk-go v1.30.10 // indirect
+	github.com/aliyun/aliyun-oss-go-sdk v0.0.0-20190307165228-86c17b95fcd5 // indirect
+	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/cenkalti/backoff/v4 v4.0.2 // indirect
 	github.com/cloudflare/cloudflare-go v0.11.6 // indirect
 	github.com/cpu/goacmedns v0.0.2 // indirect
-	github.com/dnsimple/dnsimple-go v0.31.0 // indirect
 	github.com/exoscale/egoscale v1.19.0 // indirect
 	github.com/foomo/tlsconfig v0.0.0-20180418120404-b67861b076c9
-	github.com/go-acme/lego/v3 v3.5.0
+	github.com/go-acme/lego/v3 v3.7.0
 	github.com/go-errors/errors v1.0.2 // indirect
 	github.com/go-resty/resty/v2 v2.2.0 // indirect
 	github.com/golang/protobuf v1.4.0 // indirect
@@ -33,6 +33,7 @@ require (
 	github.com/mitchellh/mapstructure v1.2.2 // indirect
 	github.com/oracle/oci-go-sdk v17.4.0+incompatible // indirect
 	github.com/sacloud/libsacloud v1.36.1 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.5.0 // indirect
 	github.com/transip/gotransip v5.8.2+incompatible // indirect
 	github.com/vultr/govultr v0.3.3 // indirect
