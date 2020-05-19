@@ -135,7 +135,13 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 			log.Fatal("[FATAL] simplecert: failed to unmarshal certificate resource: ", err)
 		}
 
-		cert := getACMECertResource(cr)
+		var (
+			// CertReloader must be created before starting the renewal check
+			// since a renewal might result in receiving a SIGHUP for triggering the reload
+			// the goroutine for handling the signal and taking action is started when creating the reloader
+			certReloader, errReloader = NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
+			cert = getACMECertResource(cr)
+		)
 
 		// renew cert if necessary
 		errRenew := renew(cert, cfg)
@@ -146,7 +152,7 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 		// kickoff renewal routine
 		go renewalRoutine(cert, cfg)
 
-		return NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
+		return certReloader, errReloader
 	}
 
 obtainNewCert:

@@ -65,7 +65,7 @@ func renew(cert *certificate.Resource, cfg *Config) error {
 		// backup old cert and key
 		// create a new directory for those in cacheDir, named backup-{currentDate}-{currentTime}
 		backupDate = time.Now().Format("2006-January-02-1504")
-		err = os.Mkdir(filepath.Join(c.CacheDir, "backup-"+backupDate), c.CacheDirPerm)
+		err = os.MkdirAll(filepath.Join(c.CacheDir, "backup-"+backupDate), c.CacheDirPerm)
 		if err != nil {
 			return fmt.Errorf("simplecert: failed to create backup dir: %s", err)
 		}
@@ -90,22 +90,18 @@ func renew(cert *certificate.Resource, cfg *Config) error {
 
 		log.Println("[INFO] simplecert: wrote new cert to disk!")
 
-		// if not using a DNS provider: trigger reload via SIGHUP
-		if cfg.DNSProvider == "" {
+		log.Println("[INFO] triggering reload via SIGHUP")
 
-			log.Println("[INFO] triggering reload via SIGHUP")
+		// trigger reload by sending our process a SIGHUP
+		p, err := os.FindProcess(os.Getpid())
+		if err != nil {
+			return fmt.Errorf("simplecert: failed to get process by PID: %s", err)
+		}
 
-			// trigger reload by sending our process a SIGHUP
-			p, err := os.FindProcess(os.Getpid())
-			if err != nil {
-				return fmt.Errorf("simplecert: failed to get process by PID: %s", err)
-			}
-
-			// send signal
-			err = p.Signal(syscall.SIGHUP)
-			if err != nil {
-				return fmt.Errorf("simplecert: failed to send SIGHUP to our process: %s", err)
-			}
+		// send signal
+		err = p.Signal(syscall.SIGHUP)
+		if err != nil {
+			return fmt.Errorf("simplecert: failed to send SIGHUP to our process: %s", err)
 		}
 	}
 
