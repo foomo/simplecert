@@ -108,6 +108,11 @@ func renew(cert *certificate.Resource) error {
 		if err != nil {
 			return fmt.Errorf("simplecert: failed to send SIGHUP to our process: %s", err)
 		}
+
+		// allow service restart if required
+		if c.DidRenewCertificate != nil {
+			c.DidRenewCertificate()
+		}
 	}
 
 	return nil
@@ -132,12 +137,6 @@ func renewalRoutine(cr *certificate.Resource) {
 			} else {
 				// otherwise fatal
 				log.Fatal("[FATAL] failed to renew cert: ", err.Error())
-			}
-
-		} else { // all good.
-			// allow service restart if required
-			if c.DidRenewCertificate != nil {
-				c.DidRenewCertificate()
 			}
 		}
 	}
