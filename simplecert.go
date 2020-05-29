@@ -144,13 +144,13 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 		)
 
 		// renew cert if necessary
-		errRenew := renew(cert, cfg)
+		errRenew := renew(cert)
 		if errRenew != nil {
 			log.Fatal("[FATAL] failed to renew cached cert on startup: ", errRenew)
 		}
 
 		// kickoff renewal routine
-		go renewalRoutine(cert, cfg)
+		go renewalRoutine(cert)
 
 		return certReloader, errReloader
 	}
@@ -197,7 +197,7 @@ obtainNewCert:
 	log.Println("[INFO] simplecert: wrote new cert to disk!")
 
 	// kickoff renewal routine
-	go renewalRoutine(cert, cfg)
+	go renewalRoutine(cert)
 
 	return NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
 }

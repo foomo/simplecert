@@ -19,7 +19,7 @@ import (
 	"github.com/go-acme/lego/v3/certificate"
 )
 
-func renew(cert *certificate.Resource, cfg *Config) error {
+func renew(cert *certificate.Resource) error {
 
 	// Input certificate is PEM encoded. Decode it here as we may need the decoded
 	// cert later on in the renewal process. The input may be a bundle or a single certificate.
@@ -42,6 +42,11 @@ func renew(cert *certificate.Resource, cfg *Config) error {
 	if int(timeLeft.Hours()) <= int(c.RenewBefore) {
 
 		log.Println("[INFO] simplecert: renewing cert...")
+
+		// allow graceful shutdown of running services if required
+		if c.WillRenewCertificate != nil {
+			c.WillRenewCertificate()
+		}
 
 		u, err := getUser()
 		if err != nil {
@@ -111,19 +116,14 @@ func renew(cert *certificate.Resource, cfg *Config) error {
 // take care of checking the cert in the configured interval
 // and renew if timeLeft is less than or equal to renewBefore
 // when initially started, the certificate is checked against the thresholds and renewed if neccessary
-func renewalRoutine(cr *certificate.Resource, cfg *Config) {
+func renewalRoutine(cr *certificate.Resource) {
 
 	for {
 		// sleep for duration of checkInterval
 		time.Sleep(c.CheckInterval)
 
-		// allow graceful shutdown of running services if required
-		if c.WillRenewCertificate != nil {
-			c.WillRenewCertificate()
-		}
-
 		// renew the certificate
-		err := renew(cr, cfg)
+		err := renew(cr)
 		if err != nil { // something went wrong.
 
 			// call handler if set
