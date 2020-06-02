@@ -24,6 +24,12 @@ func Status() *CertStatus {
 	var certData []byte
 	if !local {
 
+		// prevent a nil pointer exception if the status API is called
+		// but the config hasn't been initialized yet
+		if c == nil {
+			return nil
+		}
+
 		// read cert resource from disk
 		b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
 		if err != nil {
