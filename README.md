@@ -173,7 +173,7 @@ For the DNS challenge, an API token of an provider must be exported as environme
 
 In case of using the HTTP or TLS challenges, port 80 or 443 must temporarily be freed.
 
-The *simplecert.Config* contains to functions that can be set to accomplish this:
+The *simplecert.Config* contains two functions that can be set to accomplish this:
 
 - WillRenewCertificate, called just before the certificate will be renewed.
 - DidRenewCertificate, called after the certificate was renewed.
@@ -181,7 +181,7 @@ The *simplecert.Config* contains to functions that can be set to accomplish this
 These functions can be used to gracefully stop the running service,
 and bring it back up once the certificate renewal is complete.
 
-If you want to exchange the certificates on disk and force the running service to reload them,
+If you want to exchange the certificates manually on disk and force the running service to reload them,
 simply send a *SIGHUP* signal to your running instance:
 
     kill -HUP <pid>
