@@ -9,9 +9,10 @@ import (
 )
 
 type CertStatus struct {
-	Domains []string
+	Domains     []string
 	RenewBefore int
-	Expires int
+	Expires     int
+	DnsServers  []string
 }
 
 // Status can be used to check the validity status of the certificate
@@ -80,8 +81,8 @@ func Status() *CertStatus {
 	// Calculate TimeLeft
 	timeLeft := x509Cert.NotAfter.Sub(time.Now().UTC())
 	return &CertStatus{
-		Domains: x509Cert.DNSNames,
-		Expires: int(timeLeft.Hours()),
+		Domains:     x509Cert.DNSNames,
+		Expires:     int(timeLeft.Hours()),
 		RenewBefore: c.RenewBefore,
 	}
 }
