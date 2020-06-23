@@ -12,7 +12,6 @@ type CertStatus struct {
 	Domains     []string
 	RenewBefore int
 	Expires     int
-	DnsServers  []string
 }
 
 // Status can be used to check the validity status of the certificate
