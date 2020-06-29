@@ -13,6 +13,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/go-acme/lego/v3/challenge/dns01"
 	"github.com/go-acme/lego/v3/challenge/tlsalpn01"
 
 	"github.com/go-acme/lego/v3/certcrypto"
@@ -26,7 +27,7 @@ import (
  *	ACMEClient
  */
 
-func createClient(u SSLUser) (lego.Client, error) {
+func createClient(u SSLUser, dnsServers []string) (lego.Client, error) {
 
 	// create lego config
 	config := lego.NewConfig(&u)
@@ -51,7 +52,7 @@ func createClient(u SSLUser) (lego.Client, error) {
 			return *client, fmt.Errorf("simplecert: setting DNS provider specified in config: %s", err)
 		}
 
-		err = client.Challenge.SetDNS01Provider(p)
+		err = client.Challenge.SetDNS01Provider(p, dns01.CondOption((len(dnsServers) > 0), dns01.AddRecursiveNameservers(dns01.ParseNameservers(dnsServers))))
 		if err != nil {
 			return *client, fmt.Errorf("simplecert: setting DNS challenge provider failed: %s", err)
 		}

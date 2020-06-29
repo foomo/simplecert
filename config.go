@@ -41,6 +41,7 @@ var Default = &Config{
 	DNSProvider:   "",
 	Local:         false,
 	UpdateHosts:   true,
+	DNSServers:    []string{},
 }
 
 // Config allows configuration of simplecert
@@ -70,6 +71,9 @@ type Config struct {
 
 	// Domains for which to obtain the certificate
 	Domains []string
+
+	// DNSServers overrides the dns resolvers to use for a dns challenge, this is handy if you have a split dns.
+	DNSServers []string
 
 	// Path of the CacheDir
 	CacheDir string

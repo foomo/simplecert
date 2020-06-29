@@ -54,7 +54,7 @@ func renew(cert *certificate.Resource) error {
 		}
 
 		// get ACME Client
-		client, err := createClient(u)
+		client, err := createClient(u, c.DNSServers)
 		if err != nil {
 			return fmt.Errorf("simplecert: failed to create lego.Client: %s", err)
 		}

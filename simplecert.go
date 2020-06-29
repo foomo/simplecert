@@ -140,7 +140,7 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 			// since a renewal might result in receiving a SIGHUP for triggering the reload
 			// the goroutine for handling the signal and taking action is started when creating the reloader
 			certReloader, errReloader = NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
-			cert = getACMECertResource(cr)
+			cert                      = getACMECertResource(cr)
 		)
 
 		// renew cert if necessary
@@ -167,7 +167,7 @@ obtainNewCert:
 	}
 
 	// get ACME Client
-	client, err := createClient(u)
+	client, err := createClient(u, c.DNSServers)
 	if err != nil {
 		log.Fatal("[FATAL] failed to create lego.Client: ", err)
 	}
