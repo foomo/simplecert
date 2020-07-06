@@ -95,23 +95,25 @@ func renew(cert *certificate.Resource) error {
 
 		log.Println("[INFO] simplecert: wrote new cert to disk!")
 
-		log.Println("[INFO] triggering reload via SIGHUP")
-
-		// trigger reload by sending our process a SIGHUP
-		p, err := os.FindProcess(os.Getpid())
-		if err != nil {
-			return fmt.Errorf("simplecert: failed to get process by PID: %s", err)
-		}
-
-		// send signal
-		err = p.Signal(syscall.SIGHUP)
-		if err != nil {
-			return fmt.Errorf("simplecert: failed to send SIGHUP to our process: %s", err)
-		}
-
 		// allow service restart if required
 		if c.DidRenewCertificate != nil {
 			c.DidRenewCertificate()
+		} else {
+			// if the user has not specified a DidRenewCertificate handler to restart the service
+			// we will force the server to reload the cert by sending a HUP signal
+			log.Println("[INFO] triggering reload via SIGHUP")
+
+			// trigger reload by sending our process a SIGHUP
+			p, err := os.FindProcess(os.Getpid())
+			if err != nil {
+				return fmt.Errorf("simplecert: failed to get process by PID: %s", err)
+			}
+
+			// send signal
+			err = p.Signal(syscall.SIGHUP)
+			if err != nil {
+				return fmt.Errorf("simplecert: failed to send SIGHUP to our process: %s", err)
+			}
 		}
 	}
 

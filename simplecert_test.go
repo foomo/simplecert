@@ -20,75 +20,100 @@ import (
 	"github.com/foomo/tlsconfig"
 )
 
-var stopAfterNumRenews = 2
+var stopAfterNumRenews = 4
 
+// testing with pebble ACME server:
+// 1) go get github.com/letsencrypt/pebble and move into pebble project directory
+// 2) add cert to trust store
+//    $ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain test/certs/pebble.minica.pem
+// 3) start pebble ACME testing service, disable nonce rejection and challenge verification, as well as authz reuse:
+//    $ PEBBLE_AUTHZREUSE=0 PEBBLE_WFE_NONCEREJECT=0 PEBBLE_VA_ALWAYS_VALID=1 pebble -config ./test/config/pebble-config.json
+// 4) point test domain to localhost in /etc/hosts
+//    127.0.0.1	 mytestdomain.com
 func TestRenewal(t *testing.T) {
 
-		var (
-			numRenews int
-			ctx, cancel = context.WithCancel(context.Background())
+	// pebble wont store any information on the file system
+	// so we need to reset all state before contacting it initially
+	// or we will be greeted with an error stating that the account https://0.0.0.0:14000/my-account/1 was not found
+	os.RemoveAll("simplecert")
 
-			// init strict tlsConfig
-			tlsconf = tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
+	var (
+		numRenews int
+		ctx, cancel = context.WithCancel(context.Background())
 
-			// init server
-			srv = &http.Server{
+		// init strict tlsConfig
+		tlsconf = tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
+
+		makeServer = func() *http.Server {
+			return &http.Server{
 				Addr:      ":5001",
 				Handler:   nil, // http.DefaultServeMux
 				TLSConfig: tlsconf,
 			}
-
-			// init simplecert configuration
-			cfg = Default
-		)
-
-		// configure
-		cfg.Domains = []string{"mydomain.com"}
-		cfg.CacheDir = "simplecert"
-		cfg.SSLEmail = "me@mail.com"
-		cfg.DirectoryURL = "https://127.0.0.1:14000/dir"
-
-		cfg.RenewBefore = int((90 * 24 * time.Hour) - 1 * time.Minute) // renew if older than 1 minute after initial retrieval
-		cfg.CheckInterval = 20 * time.Second // check every 20 seconds
-		cfg.CacheDir = "simplecert"
-
-		cfg.WillRenewCertificate = func() {
-			// stop server
-			cancel()
 		}
 
-		cfg.DidRenewCertificate = func() {
+		// init server
+		srv = makeServer()
 
-			numRenews++
-			if numRenews == stopAfterNumRenews {
-				os.Exit(0)
-			}
+		// init simplecert configuration
+		cfg = Default
+	)
 
-			// restart server
-			go serveProd(ctx, srv)
-		}
+	// configure
+	cfg.Domains = []string{"mytestdomain.com"}
+	cfg.CacheDir = "simplecert"
+	cfg.SSLEmail = "me@mail.com"
+	cfg.DirectoryURL = "https://127.0.0.1:14000/dir"
 
-		// init config
-		certReloader, err := Init(cfg, func() {
+	cfg.RenewBefore = int((90 * 24 * time.Hour) - 1 * time.Minute) // renew if older than 1 minute after initial retrieval
+	cfg.CheckInterval = 20 * time.Second // check every 20 seconds
+	cfg.CacheDir = "simplecert"
+
+	cfg.WillRenewCertificate = func() {
+		// stop server
+		cancel()
+	}
+
+	cfg.DidRenewCertificate = func() {
+
+		numRenews++
+		if numRenews == stopAfterNumRenews {
 			os.Exit(0)
-		})
-		if err != nil {
-			log.Fatal("simplecert init failed: ", err)
 		}
 
-		// redirect HTTP to HTTPS
-		log.Println("starting HTTP Listener on Port 80")
-		go http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+		// restart server: both context and server instance need to be recreated!
+		ctx, cancel = context.WithCancel(context.Background())
+		srv = makeServer()
 
-		// enable hot reload
-		tlsconf.GetCertificate = certReloader.GetCertificateFunc()
+		go serveProd(ctx, srv)
+	}
 
-		// start serving
-		log.Println("will serve at: https://" + cfg.Domains[0])
-		serveProd(ctx, srv)
+	// init config
+	certReloader, err := Init(cfg, func() {
+		os.Exit(0)
+	})
+	if err != nil {
+		log.Fatal("simplecert init failed: ", err)
+	}
 
-		fmt.Println("waiting forever")
-		<- make(chan bool)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("hello"))
+	})
+
+	// redirect HTTP to HTTPS
+	log.Println("starting HTTP Listener on Port 80")
+	go http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+
+	// enable hot reload
+	tlsconf.GetCertificate = certReloader.GetCertificateFunc()
+
+	// start serving
+	log.Println("will serve at: https://" + cfg.Domains[0])
+	serveProd(ctx, srv)
+
+	fmt.Println("waiting forever")
+	<- make(chan bool)
 }
 
 func serveProd(ctx context.Context, srv *http.Server) {
@@ -116,8 +141,4 @@ func serveProd(ctx context.Context, srv *http.Server) {
 	} else if err != nil {
 		log.Printf("server encountered an error on exit: %+s\n", err)
 	}
-
-	// block forever, to avoid having main quit after the first renewal
-	// subsequent calls to serve should be done in a goroutine
-	<-make(chan struct{})
 }
