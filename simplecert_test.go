@@ -12,9 +12,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"testing"
 	"net/http"
 	"os"
+	"testing"
 	"time"
 
 	"github.com/foomo/tlsconfig"
@@ -38,8 +38,10 @@ func TestRenewal(t *testing.T) {
 	os.RemoveAll("simplecert")
 
 	var (
-		numRenews int
-		ctx, cancel = context.WithCancel(context.Background())
+		certReloader *CertReloader
+		err          error
+		numRenews    int
+		ctx, cancel  = context.WithCancel(context.Background())
 
 		// init strict tlsConfig
 		tlsconf = tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
@@ -65,8 +67,8 @@ func TestRenewal(t *testing.T) {
 	cfg.SSLEmail = "me@mail.com"
 	cfg.DirectoryURL = "https://127.0.0.1:14000/dir"
 
-	cfg.RenewBefore = int((90 * 24 * time.Hour) - 1 * time.Minute) // renew if older than 1 minute after initial retrieval
-	cfg.CheckInterval = 20 * time.Second // check every 20 seconds
+	cfg.RenewBefore = int((90 * 24 * time.Hour) - 1*time.Minute) // renew if older than 1 minute after initial retrieval
+	cfg.CheckInterval = 20 * time.Second                         // check every 20 seconds
 	cfg.CacheDir = "simplecert"
 
 	cfg.WillRenewCertificate = func() {
@@ -85,11 +87,14 @@ func TestRenewal(t *testing.T) {
 		ctx, cancel = context.WithCancel(context.Background())
 		srv = makeServer()
 
+		// force reload the updated cert from disk
+		certReloader.ReloadNow()
+
 		go serveProd(ctx, srv)
 	}
 
 	// init config
-	certReloader, err := Init(cfg, func() {
+	certReloader, err = Init(cfg, func() {
 		os.Exit(0)
 	})
 	if err != nil {
@@ -113,16 +118,15 @@ func TestRenewal(t *testing.T) {
 	serveProd(ctx, srv)
 
 	fmt.Println("waiting forever")
-	<- make(chan bool)
+	<-make(chan bool)
 }
 
 func serveProd(ctx context.Context, srv *http.Server) {
 
 	// lets go
-	//cLog.Fatal(srv.ListenAndServeTLS("", ""))
 	go func() {
 		if err := srv.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen:%+s\n", err)
+			log.Fatalf("listen: %+s\n", err)
 		}
 	}()
 

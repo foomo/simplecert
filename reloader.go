@@ -54,32 +54,7 @@ func NewCertReloader(certPath, keyPath string, logFile *os.File, cleanup func())
 		for sig := range sigChan {
 			if sig == syscall.SIGHUP {
 				log.Printf("Received SIGHUP, reloading TLS certificate and key from %q and %q", certPath, keyPath)
-				if err := reloader.maybeReload(); err != nil {
-
-					// there was an error reloading the certificate
-					// rollback files from backup dir
-					log.Printf("[INFO] simplecert: Keeping old TLS certificate because the new one could not be loaded: %v", err)
-
-					// restore private key
-					backupPrivKey := filepath.Join(c.CacheDir, "backup-"+backupDate, keyFileName)
-					err = os.Rename(backupPrivKey, filepath.Join(c.CacheDir, keyFileName))
-					if err != nil {
-						log.Fatal("[FATAL] simplecert: failed to move key into backup dir: ", err)
-					}
-
-					// restore certificate
-					backupCert := filepath.Join(c.CacheDir, "backup-"+backupDate, certFileName)
-					err = os.Rename(backupCert, filepath.Join(c.CacheDir, certFileName))
-					if err != nil {
-						log.Fatal("[FATAL] simplecert: failed to move cert into backup dir: ", err)
-					}
-
-					// remove backup directory
-					err = os.Remove(filepath.Join(c.CacheDir, "backup-"+backupDate))
-					if err != nil {
-						log.Fatal("[FATAL] simplecert: failed to remove backup dir: ", err)
-					}
-				}
+				reloader.reload()
 			} else {
 				// cleanup
 				err := logFile.Close()
@@ -120,5 +95,39 @@ func (reloader *CertReloader) GetCertificateFunc() func(*tls.ClientHelloInfo) (*
 		reloader.RLock()
 		defer reloader.RUnlock()
 		return reloader.cert, nil
+	}
+}
+
+// ReloadNow will force reloading the cert from disk
+func (reloader *CertReloader) ReloadNow() {
+	reloader.reload()
+}
+
+func (reloader *CertReloader) reload() {
+	if err := reloader.maybeReload(); err != nil {
+
+		// there was an error reloading the certificate
+		// rollback files from backup dir
+		log.Printf("[INFO] simplecert: Keeping old TLS certificate because the new one could not be loaded: %v", err)
+
+		// restore private key
+		backupPrivKey := filepath.Join(c.CacheDir, "backup-"+backupDate, keyFileName)
+		err = os.Rename(backupPrivKey, filepath.Join(c.CacheDir, keyFileName))
+		if err != nil {
+			log.Fatal("[FATAL] simplecert: failed to move key into backup dir: ", err)
+		}
+
+		// restore certificate
+		backupCert := filepath.Join(c.CacheDir, "backup-"+backupDate, certFileName)
+		err = os.Rename(backupCert, filepath.Join(c.CacheDir, certFileName))
+		if err != nil {
+			log.Fatal("[FATAL] simplecert: failed to move cert into backup dir: ", err)
+		}
+
+		// remove backup directory
+		err = os.Remove(filepath.Join(c.CacheDir, "backup-"+backupDate))
+		if err != nil {
+			log.Fatal("[FATAL] simplecert: failed to remove backup dir: ", err)
+		}
 	}
 }
