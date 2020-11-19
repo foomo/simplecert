@@ -10,6 +10,7 @@ package simplecert
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"log"
@@ -54,7 +55,7 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 	// open logfile handle
 	logFile, err := os.OpenFile(filepath.Join(c.CacheDir, logFileName), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
-		log.Fatal("[FATAL] simplecert: failed to create logfile: ", err)
+		return nil, errors.New("simplecert: failed to create logfile: " + err.Error())
 	}
 
 	// configure log pkg to log to stdout and into the logfile
@@ -125,14 +126,14 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 		// read cert resource from disk
 		b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to read CertResource.json from disk: ", err)
+			return nil, errors.New("simplecert: failed to read CertResource.json from disk: " + err.Error())
 		}
 
 		// unmarshal certificate resource
 		var cr CR
 		err = json.Unmarshal(b, &cr)
 		if err != nil {
-			log.Fatal("[FATAL] simplecert: failed to unmarshal certificate resource: ", err)
+			return nil, errors.New("simplecert: failed to unmarshal certificate resource: " + err.Error())
 		}
 
 		var (
@@ -146,7 +147,7 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 		// renew cert if necessary
 		errRenew := renew(cert)
 		if errRenew != nil {
-			log.Fatal("[FATAL] failed to renew cached cert on startup: ", errRenew)
+			return nil, errors.New("simplecert: failed to renew cached cert on startup: " + errRenew.Error())
 		}
 
 		// kickoff renewal routine
@@ -163,13 +164,13 @@ obtainNewCert:
 
 	u, err := getUser()
 	if err != nil {
-		log.Fatal("[FATAL] failed to get ACME user: ", err)
+		return nil, errors.New("simplecert: failed to get ACME user: " + err.Error())
 	}
 
 	// get ACME Client
 	client, err := createClient(u, c.DNSServers)
 	if err != nil {
-		log.Fatal("[FATAL] failed to create lego.Client: ", err)
+		return nil, errors.New("simplecert: failed to create lego.Client: " + err.Error())
 	}
 
 	// bundle CA with certificate to avoid "transport: x509: certificate signed by unknown authority" error
@@ -183,7 +184,7 @@ obtainNewCert:
 	// The domains must resolve to this machine or you have to use the DNS challenge.
 	cert, err := client.Certificate.Obtain(request)
 	if err != nil {
-		log.Fatal("[FATAL] simplecert: failed to obtain cert: ", err)
+		return nil, errors.New("simplecert: failed to obtain cert: " + err.Error())
 	}
 
 	log.Println("[INFO] simplecert: client obtained cert for domain: ", cert.Domain)
@@ -191,7 +192,7 @@ obtainNewCert:
 	// Save cert to disk
 	err = saveCertToDisk(cert, c.CacheDir)
 	if err != nil {
-		log.Fatal("[FATAL] simplecert: failed to write cert to disk")
+		return nil, errors.New("simplecert: failed to write cert to disk: " + err.Error())
 	}
 
 	log.Println("[INFO] simplecert: wrote new cert to disk!")

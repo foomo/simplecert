@@ -59,7 +59,7 @@ func NewCertReloader(certPath, keyPath string, logFile *os.File, cleanup func())
 				// cleanup
 				err := logFile.Close()
 				if err != nil {
-					log.Fatal("[FATAL] simplecert: failed to close logfile handle: ", err)
+					log.Println("[FATAL] simplecert: failed to close logfile handle: ", err)
 				}
 				log.Println("[INFO] simplecert: closed logfile handle")
 
