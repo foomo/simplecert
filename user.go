@@ -18,7 +18,7 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/go-acme/lego/v3/registration"
+	"github.com/go-acme/lego/v4/registration"
 )
 
 const sslUserFileName = "SSLUser.json"

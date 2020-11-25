@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-acme/lego/v3/certificate"
+	"github.com/go-acme/lego/v4/certificate"
 )
 
 func renew(cert *certificate.Resource) error {
@@ -61,7 +61,7 @@ func renew(cert *certificate.Resource) error {
 
 		// start renewal
 		// bundle CA with certificate to avoid "transport: x509: certificate signed by unknown authority" error
-		cert, err := client.Certificate.Renew(*cert, true, false)
+		cert, err := client.Certificate.Renew(*cert, true, false, "")
 		if err != nil {
 			return fmt.Errorf("simplecert: failed to renew cert: %s", err)
 		}
