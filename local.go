@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lextoumbourou/goodhosts"
+	"github.com/goodhosts/hostsfile"
 )
 
 // updateHosts is used in local mode
@@ -25,7 +25,7 @@ import (
 func updateHosts() {
 
 	// get hostfile handle
-	hosts, err := goodhosts.NewHosts()
+	hosts, err := hostsfile.NewHosts()
 	if err != nil {
 		log.Fatal("[FATAL] simplecert: could not open hostsfile: ", err)
 	}
