@@ -283,6 +283,15 @@ The LEGO package imports various api clients for providing the DNS challenges - 
 In case this happens usually googling the error message is sufficient to find the go module replace directive that pins the needed version.
 Please open an issue if you could not fix a dependency error on your own.
 
+- Container Pitfalls
+
+Be careful with containers that are configured to automatically restart on errors!
+When obtaining (or storing) a certificate fails for whatever reason, and your container will crash and restart automatically, you might get blocked due to the letsencrypt APIs rate limits. 
+
+Another common pitfall is to forget mounting the cache directory into your container, this way simplecert will obtain a new cert on every deployment, which will also likely cause rate limit issues after a while.
+
+You can read more about the letsencrypt API rate limits here: https://letsencrypt.org/docs/rate-limits/
+
 ## License
 
 MIT
