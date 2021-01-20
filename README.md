@@ -49,6 +49,7 @@ For more advanced usage, see the config section for all configuration options.
 - [Configuration](#configuration)
 - [Examples](#examples)
 - [Debug](#debug)
+- [Troubleshooting](#troubleshooting)
 - [License](#license)
 
 ## Install
@@ -265,6 +266,22 @@ And a simple example for local development with a locally trusted certificate (r
 ## Debug
 
 Simplecert writes all its logs to the *simplecert.log* file inside the configured cache directory.
+
+It will contain information about certificate status and renewal, as well as errors that occured.
+
+## Troubleshooting
+
+- If you get an error that looks like the following during obtaining a certificate, please check your firewall configuration, and ensure the ports for performing the challenge (HTTP: 80, TLS: 443, DNS: 53) are reachable from the outside world.
+
+```
+urn:ietf:params:acme:error:connection :: Timeout during connect (likely firewall problem), url: ...
+```
+
+- Dependency errors
+
+The LEGO package imports various api clients for providing the DNS challenges - unfortunately this leads to frequent incompatibilities, in code that is not under our control.
+In case this happens usually googling the error message is sufficient to find the go module replace directive that pins the needed version.
+Please open an issue if you could not fix a dependency error on your own.
 
 ## License
 
