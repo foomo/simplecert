@@ -90,7 +90,7 @@ func TestRenewal(t *testing.T) {
 		// force reload the updated cert from disk
 		certReloader.ReloadNow()
 
-		go serveProd(ctx, srv)
+		go serve(ctx, srv)
 	}
 
 	// init config
@@ -115,13 +115,13 @@ func TestRenewal(t *testing.T) {
 
 	// start serving
 	log.Println("will serve at: https://" + cfg.Domains[0])
-	serveProd(ctx, srv)
+	serve(ctx, srv)
 
 	fmt.Println("waiting forever")
 	<-make(chan bool)
 }
 
-func serveProd(ctx context.Context, srv *http.Server) {
+func serve(ctx context.Context, srv *http.Server) {
 
 	// lets go
 	go func() {

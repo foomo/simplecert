@@ -70,7 +70,7 @@ func main() {
 	cfg.HTTPAddress = ""
 
 	// this function will be called just before certificate renewal starts and is used to gracefully stop the service
-	// (we need to free port 443 in order to complete the TLS challenge)
+	// (we need to temporarily free port 443 in order to complete the TLS challenge)
 	cfg.WillRenewCertificate = func() {
 		// stop server
 		cancel()
@@ -88,12 +88,15 @@ func main() {
 		// force reload the updated cert from disk
 		certReloader.ReloadNow()
 
+		// here we go again
 		go serve(ctx, srv)
 	}
 
 	log.Println("hello world")
 
-	// init config
+	// init simplecert configuration
+	// this will block initially until the certificate has been obtained for the first time.
+	// on subsequent runs, simplecert will load the certificate from the cache directory on disk.
 	certReloader, err = simplecert.Init(cfg, func() {
 		os.Exit(0)
 	})
