@@ -18,11 +18,15 @@ import (
 var (
 	c *Config
 
-	errNoDirectoryURL = errors.New("simplecert: no directory url specified")
-	errNoMail         = errors.New("simplecert: no SSLEmail in config")
-	errNoDomains      = errors.New("simplecert: no domains specified")
-	errNoChallenge    = errors.New("simplecert: no challenge method specified")
-	errNoCacheDir     = errors.New("simplecert: no cache directory specified")
+	errNoDirectoryURL = errors.New("simplecert: no directory url specified in config")
+	errNoMail         = errors.New("simplecert: no SSLEmail in config in config")
+	errNoDomains      = errors.New("simplecert: no domains specified in config")
+	errNoChallenge    = errors.New("simplecert: no challenge method specified in config")
+	errNoCacheDir     = errors.New("simplecert: no cache directory specified in config")
+
+	errNoRenewBefore   = errors.New("simplecert: no renew before value set in config")
+	errNoCheckInterval = errors.New("simplecert: no check interval set in config")
+	errNoCacheDirPerm  = errors.New("simplecert: no cache directory permission specified in config")
 )
 
 // Default contains a default configuration
@@ -114,6 +118,18 @@ func CheckConfig(c *Config) error {
 
 	if c.DNSProvider == "" && c.HTTPAddress == "" && c.TLSAddress == "" {
 		return errNoChallenge
+	}
+
+	if c.RenewBefore == 0 {
+		return errNoCacheDir
+	}
+
+	if c.CheckInterval == 0 {
+		return errNoCheckInterval
+	}
+
+	if c.CacheDirPerm == 0 {
+		return errNoCacheDirPerm
 	}
 
 	if c.WillRenewCertificate == nil && (c.HTTPAddress != "" || c.TLSAddress != "") {
