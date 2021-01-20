@@ -65,12 +65,14 @@ func NewCertReloader(certPath, keyPath string, logFile *os.File, cleanup func())
 
 				// run custom cleanup func if available
 				if cleanup != nil {
-					cleanup()
-				}
 
-				// keep running.
-				// it is up to the caller of simplecert.NewCertReloader()
-				// to decide what to do now
+					// execute the cleanup function supplied by the user
+					// if you want to keep the program running at this point, supply a cleanup function that does nothing.
+					cleanup()
+				} else {
+					// if no cleanup function has been specified: exit cleanly
+					os.Exit(0)
+				}
 			}
 		}
 	}()
