@@ -32,7 +32,7 @@ func createClient(u SSLUser, dnsServers []string) (lego.Client, error) {
 	// create lego config
 	config := lego.NewConfig(&u)
 	config.CADirURL = c.DirectoryURL
-	config.Certificate.KeyType = certcrypto.RSA4096
+	config.Certificate.KeyType = certcrypto.KeyType(c.KeyType)
 
 	// Create a new client instance
 	client, err := lego.NewClient(config)
