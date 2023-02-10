@@ -15,18 +15,36 @@ import (
 	"time"
 )
 
+type KeyType string
+
+const (
+	EC256   = "P256"
+	EC384   = "P384"
+	RSA2048 = "2048"
+	RSA4096 = "4096"
+	RSA8192 = "8192"
+)
+
 var (
 	c *Config
 
-	errNoDirectoryURL = errors.New("simplecert: no directory url specified in config")
-	errNoMail         = errors.New("simplecert: no SSLEmail in config in config")
-	errNoDomains      = errors.New("simplecert: no domains specified in config")
-	errNoChallenge    = errors.New("simplecert: no challenge method specified in config")
-	errNoCacheDir     = errors.New("simplecert: no cache directory specified in config")
+	errNoDirectoryURL     = errors.New("simplecert: no directory url specified in config")
+	errNoMail             = errors.New("simplecert: no SSLEmail in config in config")
+	errNoDomains          = errors.New("simplecert: no domains specified in config")
+	errNoChallenge        = errors.New("simplecert: no challenge method specified in config")
+	errNoCacheDir         = errors.New("simplecert: no cache directory specified in config")
+	errNoRenewBefore      = errors.New("simplecert: no renew before value set in config")
+	errNoCheckInterval    = errors.New("simplecert: no check interval set in config")
+	errNoCacheDirPerm     = errors.New("simplecert: no cache directory permission specified in config")
+	errUnsupportedKeyType = errors.New("simplecert: unsupported key type specified in config")
 
-	errNoRenewBefore   = errors.New("simplecert: no renew before value set in config")
-	errNoCheckInterval = errors.New("simplecert: no check interval set in config")
-	errNoCacheDirPerm  = errors.New("simplecert: no cache directory permission specified in config")
+	supportedKeyTypes = map[string]bool{
+		EC256:   true,
+		EC384:   true,
+		RSA2048: true,
+		RSA4096: true,
+		RSA8192: true,
+	}
 )
 
 // Default contains a default configuration
@@ -46,6 +64,7 @@ var Default = &Config{
 	Local:         false,
 	UpdateHosts:   true,
 	DNSServers:    []string{},
+	KeyType:       RSA2048,
 }
 
 // Config allows configuration of simplecert
@@ -92,6 +111,9 @@ type Config struct {
 	// UpdateHosts adds the domains to /etc/hosts if running in local mode
 	UpdateHosts bool
 
+	// KeyType represents the key algorithm as well as the key size or curve to use.
+	KeyType string
+
 	// Handler funcs for graceful service shutdown and restoring
 	WillRenewCertificate     func()
 	DidRenewCertificate      func()
@@ -130,6 +152,10 @@ func CheckConfig(c *Config) error {
 
 	if c.CacheDirPerm == 0 {
 		return errNoCacheDirPerm
+	}
+
+	if !supportedKeyTypes[c.KeyType] {
+		return errUnsupportedKeyType
 	}
 
 	if c.WillRenewCertificate == nil && (c.HTTPAddress != "" || c.TLSAddress != "") {
