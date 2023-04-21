@@ -147,7 +147,17 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 		// renew cert if necessary
 		errRenew := renew(cert)
 		if errRenew != nil {
-			return nil, errors.New("simplecert: failed to renew cached cert on startup: " + errRenew.Error())
+
+			// call handler if set
+			if c.FailedToRenewCertificate != nil {
+
+				// invoke the user's handler
+				c.FailedToRenewCertificate(errRenew)
+
+				// if a handler was called keep running and init normally
+			} else {
+				return nil, errors.New("simplecert: failed to renew cached cert on startup and no failedToRenewCert handler is configured: " + errRenew.Error())
+			}
 		}
 
 		// kickoff renewal routine
