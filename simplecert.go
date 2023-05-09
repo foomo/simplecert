@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -105,8 +104,9 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 	}
 
 	var (
-		certFilePath = filepath.Join(c.CacheDir, certFileName)
-		keyFilePath  = filepath.Join(c.CacheDir, keyFileName)
+		certFilePath       = filepath.Join(c.CacheDir, certFileName)
+		keyFilePath        = filepath.Join(c.CacheDir, keyFileName)
+		certDomainsChanged bool
 	)
 
 	// do we have a certificate in cacheDir?
@@ -118,52 +118,12 @@ func Init(cfg *Config, cleanup func()) (*CertReloader, error) {
 
 		if domainsChanged(certFilePath, keyFilePath) {
 			log.Println("[INFO] domains have changed. Obtaining a new certificate...")
+
+			certDomainsChanged = true
 			goto obtainNewCert
 		}
 
-		log.Println("[INFO] simplecert: found cert in cacheDir")
-
-		// read cert resource from disk
-		b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
-		if err != nil {
-			return nil, errors.New("simplecert: failed to read CertResource.json from disk: " + err.Error())
-		}
-
-		// unmarshal certificate resource
-		var cr CR
-		err = json.Unmarshal(b, &cr)
-		if err != nil {
-			return nil, errors.New("simplecert: failed to unmarshal certificate resource: " + err.Error())
-		}
-
-		var (
-			// CertReloader must be created before starting the renewal check
-			// since a renewal might result in receiving a SIGHUP for triggering the reload
-			// the goroutine for handling the signal and taking action is started when creating the reloader
-			certReloader, errReloader = NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
-			cert                      = getACMECertResource(cr)
-		)
-
-		// renew cert if necessary
-		errRenew := renew(cert)
-		if errRenew != nil {
-
-			// call handler if set
-			if c.FailedToRenewCertificate != nil {
-
-				// invoke the user's handler
-				c.FailedToRenewCertificate(errRenew)
-
-				// if a handler was called keep running and init normally
-			} else {
-				return nil, errors.New("simplecert: failed to renew cached cert on startup and no failedToRenewCert handler is configured: " + errRenew.Error())
-			}
-		}
-
-		// kickoff renewal routine
-		go renewalRoutine(cert)
-
-		return certReloader, errReloader
+		return loadStoredCert(certFilePath, keyFilePath, logFile, cleanup)
 	}
 
 obtainNewCert:
@@ -194,6 +154,17 @@ obtainNewCert:
 	// The domains must resolve to this machine or you have to use the DNS challenge.
 	cert, err := client.Certificate.Obtain(request)
 	if err != nil {
+
+		// check if we tried to obtain a new cert because the domains changed compared to a cached cert
+		if certDomainsChanged {
+
+			// if yes, log an error that this obtaining the cert failed
+			log.Println("[ERROR] simplecert: failed to obtain new cert for changed domains: ", c.Domains, " error: ", err)
+
+			// but init with the previously cached certificate
+			log.Println("[INFO] simplecert: loading cached certificate from disk")
+			return loadStoredCert(certFilePath, keyFilePath, logFile, cleanup)
+		}
 		return nil, errors.New("simplecert: failed to obtain cert: " + err.Error())
 	}
 
@@ -211,4 +182,55 @@ obtainNewCert:
 	go renewalRoutine(cert)
 
 	return NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
+}
+
+func loadStoredCert(
+	certFilePath string,
+	keyFilePath string,
+	logFile *os.File,
+	cleanup func(),
+) (*CertReloader, error) {
+	log.Println("[INFO] simplecert: found cert in cacheDir")
+
+	// read cert resource from disk
+	b, err := os.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
+	if err != nil {
+		return nil, errors.New("simplecert: failed to read CertResource.json from disk: " + err.Error())
+	}
+
+	// unmarshal certificate resource
+	var cr CR
+	err = json.Unmarshal(b, &cr)
+	if err != nil {
+		return nil, errors.New("simplecert: failed to unmarshal certificate resource: " + err.Error())
+	}
+
+	var (
+		// CertReloader must be created before starting the renewal check
+		// since a renewal might result in receiving a SIGHUP for triggering the reload
+		// the goroutine for handling the signal and taking action is started when creating the reloader
+		certReloader, errReloader = NewCertReloader(certFilePath, keyFilePath, logFile, cleanup)
+		cert                      = getACMECertResource(cr)
+	)
+
+	// renew cert if necessary
+	errRenew := renew(cert)
+	if errRenew != nil {
+
+		// call handler if set
+		if c.FailedToRenewCertificate != nil {
+
+			// invoke the user's handler
+			c.FailedToRenewCertificate(errRenew)
+
+			// if a handler was called keep running and init normally
+		} else {
+			return nil, errors.New("simplecert: failed to renew cached cert on startup and no failedToRenewCert handler is configured: " + errRenew.Error())
+		}
+	}
+
+	// kickoff renewal routine
+	go renewalRoutine(cert)
+
+	return certReloader, errReloader
 }
