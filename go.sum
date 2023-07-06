@@ -167,6 +167,8 @@ github.com/getkin/kin-openapi v0.26.0/go.mod h1:WGRs2ZMM1Q8LR1QBEwUxC6RJEfaBcD0s
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-acme/lego/v4 v4.1.3 h1:D8nnzrijQFUAqdNPwnbvm6tJ3AJAzQAlnROeecUNG/4=
 github.com/go-acme/lego/v4 v4.1.3/go.mod h1:pIFm5tWkXSgiAEfJ/XQCQIvX1cEvHFwbgLZyx8OVSUE=
+github.com/go-acme/lego/v4 v4.3.1 h1:rzmg0Gpy25B/exXjl+KgpG5Xt6wN5rFTLjRf/Uf3pfg=
+github.com/go-acme/lego/v4 v4.3.1/go.mod h1:tySA24ifl6bI7kZ0+ocGtTIv4H1yhYVFAgyMHF2DSRg=
 github.com/go-chi/chi v4.0.2+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
 github.com/go-cmd/cmd v1.0.5/go.mod h1:y8q8qlK5wQibcw63djSl/ntiHUHXHGdCkPk0j4QeW4s=
 github.com/go-errors/errors v1.0.1 h1:LUHzmkK3GUKUrL/1gfBUxAHzcev3apQlezX/+O7ma6w=
