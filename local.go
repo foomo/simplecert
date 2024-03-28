@@ -11,7 +11,6 @@ package simplecert
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -33,7 +32,10 @@ func updateHosts() {
 	// check if all domains from config are present
 	for _, d := range c.Domains {
 		if !hosts.Has(localhost, d) {
-			hosts.Add(localhost, d)
+			err := hosts.Add(localhost, d)
+			if err != nil {
+				log.Fatal("[FATAL] simplecert: failed to add entry to hosts file: ", err)
+			}
 		}
 	}
 
@@ -93,12 +95,12 @@ func createLocalCert(certFilePath, keyFilePath string) {
 }
 
 // domainsChanged check the stored domains when running in local mode
-// if they dont match the domains from the configuration
+// if they don't match the domains from the configuration
 // this function returns true
 func domainsChanged(certFilePath, keyFilePath string) bool {
 
 	// read certificate data from disk
-	certData, err := ioutil.ReadFile(certFilePath)
+	certData, err := os.ReadFile(certFilePath)
 	if err != nil {
 		log.Fatal("[FATAL] simplecert could not load X509 key pair: ", err)
 	}

@@ -3,7 +3,7 @@ package simplecert
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -31,7 +31,7 @@ func Status() *CertStatus {
 		}
 
 		// read cert resource from disk
-		b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
+		b, err := os.ReadFile(filepath.Join(c.CacheDir, certResourceFileName))
 		if err != nil {
 			fmt.Println("[Status] simplecert: failed to read CertResource.json from disk: ", err)
 			return nil
@@ -50,7 +50,7 @@ func Status() *CertStatus {
 	} else {
 		// read local cert data from disk
 		var err error
-		certData, err = ioutil.ReadFile(filepath.Join(c.CacheDir, "cert.pem"))
+		certData, err = os.ReadFile(filepath.Join(c.CacheDir, "cert.pem"))
 		if err != nil {
 			fmt.Println("[Status] simplecert: failed to read cert.pem from disk: ", err)
 			return nil

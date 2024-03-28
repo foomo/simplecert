@@ -69,7 +69,12 @@ func ListenAndServeTLSLocal(addr string, handler http.Handler, cleanup func(), d
 
 	// redirect HTTP to HTTPS
 	log.Println("starting HTTP Listener on Port 80")
-	go http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+	go func() {
+		errRedirect := http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+		if errRedirect != nil {
+			log.Fatal("[FATAL] simplecert: redirect handler failed: ", errRedirect)
+		}
+	}()
 
 	// init strict tlsConfig with certReloader
 	tlsconf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
@@ -104,7 +109,12 @@ func ListenAndServeTLS(addr string, handler http.Handler, mail string, cleanup f
 
 	// redirect HTTP to HTTPS
 	log.Println("starting HTTP Listener on Port 80")
-	go http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+	go func() {
+		errRedirect := http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+		if errRedirect != nil {
+			log.Fatal("[FATAL] simplecert: redirect handler failed: ", errRedirect)
+		}
+	}()
 
 	// init strict tlsConfig with certReloader
 	tlsconf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)

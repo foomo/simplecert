@@ -14,8 +14,8 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/go-acme/lego/v4/registration"
@@ -56,7 +56,7 @@ func getUser() (SSLUser, error) {
 	var u SSLUser
 
 	// do we have a user?
-	b, err := ioutil.ReadFile(filepath.Join(c.CacheDir, sslUserFileName))
+	b, err := os.ReadFile(filepath.Join(c.CacheDir, sslUserFileName))
 	if err == nil {
 		// user exists. load
 		err = json.Unmarshal(b, &u)
@@ -87,7 +87,7 @@ func saveUserToDisk(u SSLUser, cacheDir string) {
 	if err != nil {
 		log.Fatal("[FATAL] simplecert: failed to marshal user: ", err)
 	}
-	err = ioutil.WriteFile(filepath.Join(c.CacheDir, sslUserFileName), b, c.CacheDirPerm)
+	err = os.WriteFile(filepath.Join(c.CacheDir, sslUserFileName), b, c.CacheDirPerm)
 	if err != nil {
 		log.Fatal("[FATAL] simplecert: failed to write user to disk: ", err)
 	}

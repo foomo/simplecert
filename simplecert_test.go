@@ -103,12 +103,17 @@ func TestRenewal(t *testing.T) {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("hello"))
+		_, _ = w.Write([]byte("hello"))
 	})
 
 	// redirect HTTP to HTTPS
 	log.Println("starting HTTP Listener on Port 80")
-	go http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+	go func() {
+		errRedirect := http.ListenAndServe(":80", http.HandlerFunc(Redirect))
+		if errRedirect != nil {
+			log.Fatal("[FATAL] simplecert: redirect handler failed: ", errRedirect)
+		}
+	}()
 
 	// enable hot reload
 	tlsconf.GetCertificate = certReloader.GetCertificateFunc()

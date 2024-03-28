@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -81,19 +80,19 @@ func saveCertToDisk(cert *certificate.Resource, cacheDir string) error {
 	}
 
 	// write certificate resource to disk
-	err = ioutil.WriteFile(filepath.Join(cacheDir, certResourceFileName), b, c.CacheDirPerm)
+	err = os.WriteFile(filepath.Join(cacheDir, certResourceFileName), b, c.CacheDirPerm)
 	if err != nil {
 		return err
 	}
 
 	// write certificate PEM to disk
-	err = ioutil.WriteFile(filepath.Join(cacheDir, certFileName), cert.Certificate, c.CacheDirPerm)
+	err = os.WriteFile(filepath.Join(cacheDir, certFileName), cert.Certificate, c.CacheDirPerm)
 	if err != nil {
 		return err
 	}
 
 	// write private key PEM to disk
-	err = ioutil.WriteFile(filepath.Join(cacheDir, keyFileName), cert.PrivateKey, c.CacheDirPerm)
+	err = os.WriteFile(filepath.Join(cacheDir, keyFileName), cert.PrivateKey, c.CacheDirPerm)
 	if err != nil {
 		return err
 	}
