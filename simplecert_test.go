@@ -23,19 +23,19 @@ import (
 var stopAfterNumRenews = 4
 
 // testing with pebble ACME server:
-// 1) go get github.com/letsencrypt/pebble and move into pebble project directory
-// 2) add cert to trust store
-//    $ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain test/certs/pebble.minica.pem
-// 3) start pebble ACME testing service, disable nonce rejection and challenge verification, as well as authz reuse:
-//    $ PEBBLE_AUTHZREUSE=0 PEBBLE_WFE_NONCEREJECT=0 PEBBLE_VA_ALWAYS_VALID=1 pebble -config ./test/config/pebble-config.json
-// 4) point test domain to localhost in /etc/hosts
-//    127.0.0.1	 mytestdomain.com
+//  1. go get github.com/letsencrypt/pebble and move into pebble project directory
+//  2. add cert to trust store
+//     $ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain test/certs/pebble.minica.pem
+//  3. start pebble ACME testing service, disable nonce rejection and challenge verification, as well as authz reuse:
+//     $ PEBBLE_AUTHZREUSE=0 PEBBLE_WFE_NONCEREJECT=0 PEBBLE_VA_ALWAYS_VALID=1 pebble -config ./test/config/pebble-config.json
+//  4. point test domain to localhost in /etc/hosts
+//     127.0.0.1	 mytestdomain.com
 func TestRenewal(t *testing.T) {
 
 	// pebble wont store any information on the file system
 	// so we need to reset all state before contacting it initially
 	// or we will be greeted with an error stating that the account https://0.0.0.0:14000/my-account/1 was not found
-	os.RemoveAll("simplecert")
+	_ = os.RemoveAll("simplecert")
 
 	var (
 		certReloader *CertReloader
