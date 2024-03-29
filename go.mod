@@ -1,11 +1,9 @@
 module github.com/foomo/simplecert
 
-go 1.21
-
-toolchain go1.21.0
+go 1.21.0
 
 require (
-	github.com/foomo/tlsconfig v0.0.0-20180418120404-b67861b076c9
+	github.com/foomo/tlsconfig v1.0.1
 	github.com/go-acme/lego/v4 v4.16.1
 	github.com/goodhosts/hostsfile v0.1.6
 )
