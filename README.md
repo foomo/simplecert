@@ -130,7 +130,7 @@ Simplecert has a default configuration available: *simplecert.Default*
 You will need to update the *Domains*, *CacheDir* and *SSLEmail* and you are ready to go.
 
 ```go
-// do the cert magic
+// init simplecert
 cfg := simplecert.Default
 cfg.Domains = []string{"yourdomain.com", "www.yourdomain.com"}
 cfg.CacheDir = "/etc/letsencrypt/live/yourdomain.com"
@@ -141,14 +141,20 @@ if err != nil {
     log.Fatal("simplecert init failed: ", err)
 }
 
+// channel to handle errors
+errChan := make(chan error)
+
 // redirect HTTP to HTTPS
 // CAUTION: This has to be done AFTER simplecert setup
 // Otherwise Port 80 will be blocked and cert registration fails!
 log.Println("starting HTTP Listener on Port 80")
-go http.ListenAndServe(":80", http.HandlerFunc(redirect))
+go func(){
+    errChan <- http.ListenAndServe(":80", http.HandlerFunc(simplecert.Redirect))
+}()
 
 // init strict tlsConfig with certReloader
 // you could also use a default &tls.Config{}, but be warned this is highly insecure
+// our foomo/tlsconfig provides a simple interface to configure the tls for different scenarios 
 tlsconf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
 
 // now set GetCertificate to the reloaders GetCertificateFunc to enable hot reload
@@ -160,8 +166,13 @@ s := &http.Server{
     TLSConfig: tlsconf,
 }
 
-// lets go
-log.Fatal(s.ListenAndServeTLS("", ""))
+// start serving in a new goroutine
+go func() {
+    errChan <- s.ListenAndServeTLS("", "")
+}()
+
+// fatal on any errors
+log.Fatal(<-errChan)
 ```
 
 ## Challenges
